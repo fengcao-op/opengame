@@ -1608,6 +1608,9 @@
   overscroll-behavior-y: auto;
 }
 
+/* The active creation page and the conversation footer host the same rich editor. */
+.om-sa-composer-placement { display: contents; }
+
 /* Composer */
 .om-sa-composer-wrap {
   flex-shrink: 0;
@@ -1761,6 +1764,11 @@
 .om-sa-composer:focus-within {
   border-color: var(--motion-border);
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--motion-accent) 32%, transparent), var(--motion-shadow-md);
+}
+
+:where([data-motion-studio][data-theme='paper']) .om-sa-composer:focus-within {
+  border-color: var(--motion-neutral-n11);
+  box-shadow: var(--motion-shadow-md);
 }
 
 .om-sa-composer-chips {
@@ -2740,6 +2748,12 @@
 .om-sa-send-btn[data-ready]:hover:not(:disabled) {
   transform: translateY(-1px);
   box-shadow: 0 4px 14px color-mix(in srgb, var(--motion-accent) 44%, transparent);
+}
+
+[data-motion-studio][data-theme='paper'] .om-sa-send-btn[data-ready] {
+  background: var(--motion-neutral-n11);
+  color: var(--motion-neutral-n0);
+  box-shadow: none;
 }
 
 .om-sa-send-btn[data-stop] {
@@ -5353,7 +5367,7 @@
   margin-block-end: 0;
 }
 
-.om-sa-dock-slot:not([data-position='inline']) .om-sa-composer-wrap:not(:has(.om-sa-composer-top-bar)) textarea {
+.om-sa-dock-slot:not([data-position='inline']) .om-sa-composer-wrap:not(:has(.om-sa-composer-top-bar)) .om-sa-composer-editor {
   padding-inline-end: var(--motion-space-32);
 }
 
@@ -5361,6 +5375,11 @@
   width: min(580px, calc(100% - var(--motion-space-32)));
   height: 64px;
   border: 1px solid var(--motion-brand);
+}
+
+[data-motion-studio][data-theme='paper'] .om-sa-dock-slot[data-position='compact'] .om-sa-dock-frame,
+[data-motion-studio][data-theme='paper'] .om-sa-dock-slot[data-position='expanded'] .om-sa-dock-frame:focus-within {
+  border-color: var(--motion-neutral-n11);
 }
 
 .om-sa-dock-slot[data-position='compact'] .om-sa-dock-editor {
@@ -9313,7 +9332,7 @@
   transform: scale(1.03);
 }
 
-.om-sa-game-select-cue {
+.om-sa-showcase-action-cue {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -9334,15 +9353,16 @@
   transition: opacity var(--motion-duration-fast) var(--motion-ease-out), transform var(--motion-duration-fast) var(--motion-ease-out), background var(--motion-duration-fast) var(--motion-ease-out);
 }
 
-.om-sa-game-select-cue[data-selected] {
+.om-sa-showcase-action-cue[data-selected] {
   background: var(--motion-accent);
   color: var(--motion-bg);
 }
 
-.om-sa-game-fan-item:hover .om-sa-game-select-cue,
-.om-sa-game-fan-card:focus-visible .om-sa-game-select-cue,
-.om-sa-game-tile:hover .om-sa-game-select-cue,
-.om-sa-game-tile-cover:focus-visible .om-sa-game-select-cue {
+.om-sa-game-fan-item:hover .om-sa-showcase-action-cue,
+.om-sa-game-fan-card:focus-visible .om-sa-showcase-action-cue,
+.om-sa-game-tile:hover .om-sa-showcase-action-cue,
+.om-sa-game-tile-cover:focus-visible .om-sa-showcase-action-cue,
+.om-sa-showcase-card:is(:hover, :focus-visible) .om-sa-showcase-action-cue {
   opacity: 1;
   transform: translate(-50%, -50%) scale(1);
 }
@@ -9761,7 +9781,7 @@
   .om-sa-param-clear-btn,
   .om-sa-game-fan-item,
   .om-sa-game-fan-card img,
-  .om-sa-game-select-cue,
+  .om-sa-showcase-action-cue,
   .om-sa-game-tile-cover img,
   .om-sa-game-tile-actions,
   .om-sa-game-tile-play,
@@ -9786,6 +9806,11 @@
 @media (prefers-reduced-motion: no-preference) {
   .om-sa-stream-transition {
     animation: om-sa-stream-enter var(--motion-duration-fast) var(--motion-ease-out);
+  }
+
+  /* A transformed ancestor would anchor the floating composer to the gallery. */
+  .om-sa-stream-transition:has(.om-sa-dock-slot) {
+    animation-name: om-sa-fade-in;
   }
 }
 

@@ -418,7 +418,7 @@ it('renders Super Agent empty home, opens Resource Picker, and applies selected 
 
   expect(document.body.textContent).toContain('What can I create for you?');
   expect(container.querySelector('.om-sa-home-hero + .om-sa-starter-grid')).toBeTruthy();
-  expect(container.querySelector('.om-sa-stream > .om-sa-messages + .om-sa-composer-wrap .om-sa-composer-editor')).toBeTruthy();
+  expect(container.querySelector('.om-sa-stream > .om-sa-messages + .om-sa-composer-placement .om-sa-composer-editor')).toBeTruthy();
   expect([...container.querySelectorAll('.om-sa-starter-card strong')].map(node => node.textContent)).toEqual([
     'Build a game', 'Design Studio', 'Motion graphics', 'Make a video', 'Create slides', 'Explore more',
   ]);
@@ -621,6 +621,41 @@ it('shows Chinese image controls and keeps the draft when switching creation mod
   await act(async () => example.click());
   expect(composer.textContent).toMatch(/[\u3400-\u9fff]/u);
 
+  const group = container.querySelector('.om-sa-mode-composer-group')!;
+  const slot = group.querySelector<HTMLElement>('.om-sa-dock-slot')!;
+  expect(slot.contains(composer)).toBe(true);
+  expect(slot.nextElementSibling?.classList.contains('om-sa-mode-ideas')).toBe(true);
+  expect(group.nextElementSibling?.querySelector('h3')?.textContent).toBe('探索模版');
+  const scroll = container.querySelector<HTMLElement>('.om-sa-messages')!;
+  Object.defineProperty(scroll, 'clientHeight', { value: 600 });
+  vi.spyOn(slot, 'getBoundingClientRect').mockImplementation(() => new DOMRect(0, 100 - scroll.scrollTop, 700, 150));
+  async function scrollTo(top: number) {
+    await act(async () => {
+      scroll.scrollTop = top;
+      scroll.dispatchEvent(new Event('scroll'));
+    });
+  }
+  await scrollTo(350);
+  expect(slot.dataset.position).toBe('compact');
+  expect(composer.closest('[inert]')).toBeTruthy();
+  const summary = slot.querySelector<HTMLButtonElement>('.om-sa-dock-summary')!;
+  expect(summary.textContent).toBe(composer.textContent);
+  expect(slot.querySelector<HTMLButtonElement>(':scope .om-sa-dock-frame > .om-sa-send-btn')?.disabled).toBe(false);
+  await act(async () => summary.click());
+  expect(slot.dataset.position).toBe('expanded');
+  const initialText = composer.textContent;
+  const second = container.querySelectorAll<HTMLButtonElement>('.om-sa-showcase-card')[1];
+  await act(async () => second.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true })));
+  expect(slot.dataset.position).toBe('expanded');
+  await act(async () => second.click());
+  expect(slot.dataset.position).toBe('expanded');
+  expect(composer.textContent).not.toBe(initialText);
+  expect(getComposerEditor(slot)).toBe(composer);
+  await scrollTo(400);
+  expect(slot.dataset.position).toBe('compact');
+  await scrollTo(0);
+  expect(slot.dataset.position).toBe('inline');
+
   const qualityTrigger = [...container.querySelectorAll<HTMLButtonElement>('.om-sa-composer-top-pill')].find(
     btn => btn.textContent?.includes('1×'),
   )!;
@@ -649,6 +684,39 @@ it('shows Chinese image controls and keeps the draft when switching creation mod
   expect(container.querySelector('.om-sa-stream')?.getAttribute('data-mode')).toBe('audio');
   expect(modeSelect.textContent).toBe('音频与音效');
   expect(composer.textContent).toBe(draft);
+});
+
+it('replaces the draft when using another video template prompt without attaching either template', async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (input, init) => {
+    if (String(input).startsWith('/motion-api/template-catalog?')) {
+      return Response.json({ next: null, items: [
+        { id: 'product', title: 'Product reveal', description: 'Reveal the product.', styleDescription: 'Use soft light.', tags: [] },
+        { id: 'paper', title: 'Paper collage', description: 'Animate paper cutouts.', tags: [] },
+      ] });
+    }
+    return originalFetch(input, init);
+  };
+  await act(async () => {
+    root.render(
+      <I18nProvider initialLocale="en">
+        <SuperAgentWorkspace active chatId={null} requestedMode="motion" onChatIdChange={vi.fn()}
+          onOpenDesignProject={vi.fn()} onOpenMotionProject={vi.fn()} onOpenAsset={vi.fn()}
+          onOpenBrandKit={vi.fn()} onOpenAgentSettings={vi.fn()} onOpenMcp={vi.fn()} />
+      </I18nProvider>,
+    );
+  });
+  await flush();
+  const draft = getComposerEditor();
+  const [first, second] = container.querySelectorAll<HTMLButtonElement>('.om-sa-showcase-card');
+  await act(async () => first.click());
+  expect(draft.textContent).toMatch(/Reveal the product\.\s*Use soft light\./);
+  for (let click = 0; click < 2; click++) {
+    await act(async () => second.click());
+    expect(draft.textContent).toBe('Animate paper cutouts.');
+    expect(container.querySelector('.om-sa-attachment-chip')).toBeNull();
+    expect(container.querySelector('.om-sa-showcase-card[aria-pressed]')).toBeNull();
+  }
 });
 
 it.each(['motion', 'media'] as const)('keeps the %s dropdown limited to video models and supports editable templates', async requestedMode => {
@@ -762,7 +830,7 @@ it('displays active conversation, tool steps, approvals, and multi-tab Artifact 
   });
   await flush();
 
-  expect(container.querySelector('.om-sa-stream > .om-sa-messages + .om-sa-composer-wrap .om-sa-composer-editor')).toBeTruthy();
+  expect(container.querySelector('.om-sa-stream > .om-sa-messages + .om-sa-composer-placement .om-sa-composer-editor')).toBeTruthy();
 
   // Artifact Viewer stays closed by default on initial load / refresh and opens manually
   expect(document.querySelector('.om-sa-viewer')).toBeNull();

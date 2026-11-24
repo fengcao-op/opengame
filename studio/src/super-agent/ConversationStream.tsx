@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import { Button } from 'open-design-ui/button';
 import { IconButton } from 'open-design-ui/icon-button';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
@@ -31,6 +32,7 @@ import { Select } from '../components/ui/Select';
 import { Tooltip } from '../components/ui/Tooltip';
 import { useI18n } from '../i18n/I18n';
 import { RemixIcon } from '../icons/RemixIcons';
+import { DockableModeComposer, type DockableComposerHandle } from './DockableModeComposer';
 import { uploadSuperAgentFile } from './superAgentClient';
 import {
   ComposerMentionMenu,
@@ -459,6 +461,7 @@ export function ConversationStream({
   );
   const modeOptionsRef = useRef<ModeComposerOptions>(modeOptions);
   modeOptionsRef.current = modeOptions;
+  const [templateRevision, setTemplateRevision] = useState(0);
   const templatePromptRef = useRef<string | null>(null);
   const updateModeOptions = useCallback((patch: Partial<ModeComposerOptions>) => {
     if (patch.gameTemplate) {
@@ -585,6 +588,21 @@ export function ConversationStream({
   const folderInputRef = useRef<HTMLInputElement>(null);
   const mentionMenuRef = useRef<ComposerMentionMenuHandle>(null);
   const composerRef = useRef<ComposerPromptEditorHandle>(null);
+  const dockRef = useRef<DockableComposerHandle>(null);
+  // A single portal keeps the Lexical editor, mentions and undo history alive as its placement changes.
+  const [composerHost] = useState(() => {
+    const host = document.createElement('div');
+    host.className = 'om-sa-composer-placement';
+    return host;
+  });
+  const mountComposer = useCallback((node: HTMLDivElement | null) => {
+    if (node) node.appendChild(composerHost);
+  }, [composerHost]);
+  const focusEditor = useCallback(() => composerRef.current?.focus(), []);
+  const focusModeComposer = useCallback(() => {
+    if (dockRef.current) dockRef.current.focus();
+    else focusEditor();
+  }, [focusEditor]);
   const composerShellRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -1421,6 +1439,36 @@ export function ConversationStream({
     }
   };
 
+  const hasModeLanding = Boolean(activeMode && !chat?.messages.length && !pendingSubmission && !loading && !loadFailed);
+  const sendAction = (!busy || Boolean(editingQueuedId) || (isRunning && hasDraft)) && (
+    <IconButton
+      variant="plain"
+      className="om-sa-send-btn"
+      data-ready={canSubmit || undefined}
+      data-sending={(sending || scaffoldingGame) || undefined}
+      aria-label={
+        editingQueuedId
+          ? t('Save queued message')
+          : isRunning
+            ? t(followUpBehavior === 'queue' ? 'Queue message' : 'Steer')
+            : t('Send')
+      }
+      disabled={!canSubmit}
+      onClick={() => void handleSubmit()}
+      icon={
+        <RemixIcon
+          name={
+            (sending || scaffoldingGame)
+              ? 'loader-4-line'
+              : editingQueuedId
+                ? 'check-line'
+                : 'arrow-right-line'
+          }
+          size={18}
+        />
+      }
+    />
+  );
   const artifactCount = chat?.artifacts.length ?? 0;
 
   return (
@@ -1668,14 +1716,22 @@ export function ConversationStream({
               onToggleAttachment={toggleResourceAttachment}
               onPlayGame={onPlayGame}
               onDeployGame={onDeployGame}
-              onFocusComposer={() => composerRef.current?.focus()}
+              composer={activeMode.id === 'coding'
+                ? <div className="om-sa-composer-placement" ref={mountComposer} />
+                : <DockableModeComposer ref={dockRef} scrollRef={listRef} mountEditor={mountComposer}
+                    focusEditor={focusEditor} templateRevision={templateRevision}
+                    preview={text.trim() || getModeComposerPlaceholder(activeMode, modeOptions, t)}
+                    action={sendAction} />}
+              onApplyTemplate={() => setTemplateRevision(value => value + 1)}
+              onFocusComposer={focusModeComposer}
               onPickPrompt={(prompt, meta) => {
                 setText(prompt);
                 composerRef.current?.setPlainText(prompt);
-                composerRef.current?.focus();
+                focusModeComposer();
                 applyPickedPromptMeta(meta);
               }}
               onOpenAllResources={category => {
+                focusModeComposer();
                 setMentionCategory(mapResourceTabToMentionCategory(category ?? 'all'));
                 setMentionMenuSource('plus');
                 setMentionQuery('');
@@ -1790,7 +1846,8 @@ export function ConversationStream({
         })()}
       </div>
 
-      <div className="om-sa-composer-wrap">
+      {!hasModeLanding && <div className="om-sa-composer-placement" ref={mountComposer} />}
+      {createPortal(<div className="om-sa-composer-wrap">
         {hasPendingApproval && (
           <div className="om-sa-approval-dock" role="region" aria-label={t('Approval needed')}>
             {pendingApprovals.map(approval => (
@@ -2438,39 +2495,11 @@ export function ConversationStream({
                 />
               )}
 
-              {(!busy || Boolean(editingQueuedId) || (isRunning && hasDraft)) && (
-                <IconButton
-                  variant="plain"
-                  className="om-sa-send-btn"
-                  data-ready={canSubmit || undefined}
-                  data-sending={(sending || scaffoldingGame) || undefined}
-                  aria-label={
-                    editingQueuedId
-                      ? t('Save queued message')
-                      : isRunning
-                        ? t(followUpBehavior === 'queue' ? 'Queue message' : 'Steer')
-                        : t('Send')
-                  }
-                  disabled={!canSubmit}
-                  onClick={() => void handleSubmit()}
-                  icon={
-                    <RemixIcon
-                      name={
-                        (sending || scaffoldingGame)
-                          ? 'loader-4-line'
-                          : editingQueuedId
-                            ? 'check-line'
-                            : 'arrow-right-line'
-                      }
-                      size={18}
-                    />
-                  }
-                />
-              )}
+              {sendAction}
             </div>
           </div>
         </div>
-      </div>
+      </div>, composerHost)}
     </section>
   );
 }
