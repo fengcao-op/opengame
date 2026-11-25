@@ -2,8 +2,14 @@
 import { act } from 'react';
 import { createRoot } from 'react-dom/client';
 import { expect, it, vi } from 'vitest';
+import repositoryMedia from '../../../../repository-media.json';
 import type { GameCard } from '../../../../shared/game-contract';
 import { GameMasonry } from './GameMasonry';
+
+function expectedPreviewSrc(id: string) {
+  const entry = repositoryMedia.files.find(file => file.path === `library/game-previews/${id}.mp4`);
+  return entry?.url ?? `/game-preview-drafts/${id}.mp4`;
+}
 
 it('keeps the hovered highlight playing through scroll and releases it on exit or backgrounding', async () => {
   const games = [
@@ -49,7 +55,7 @@ it('keeps the hovered highlight playing through scroll and releases it on exit o
     const poster = card('castle-crush').querySelector('img');
     await hover('castle-crush');
     const first = video()!;
-    expect(first.src).toContain('castle-crush.mp4');
+    expect(first.getAttribute('src')).toBe(expectedPreviewSrc('castle-crush'));
     expect(first.muted && first.loop && first.hasAttribute('playsinline')).toBe(true);
     expect(first.style.visibility).toBe('hidden');
     await act(async () => first.dispatchEvent(new Event('playing')));
@@ -71,7 +77,7 @@ it('keeps the hovered highlight playing through scroll and releases it on exit o
     expect(container.querySelectorAll('video')).toHaveLength(1);
     expect(pause.mock.instances).toContain(first);
     expect(first.getAttribute('src')).toBeNull();
-    expect(video()?.src).toContain('community-what-the-water-keeps.mp4');
+    expect(video()?.getAttribute('src')).toBe(expectedPreviewSrc('community-what-the-water-keeps'));
     await scrollTo(container);
     expect(video()).toBeNull();
 
