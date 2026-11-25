@@ -17,6 +17,7 @@ import {
 import type { GatewayStatus, Modality, Model } from '../../../shared/gateway';
 import type { SuperAgentContextTag, SuperAgentResourceAttachment } from '../../../shared/super-agent';
 import { Popover } from '../components/ui/Popover';
+import { Tooltip } from '../components/ui/Tooltip';
 import { useI18n } from '../i18n/I18n';
 import { RemixIcon } from '../icons/RemixIcons';
 import {
@@ -3450,20 +3451,22 @@ export function ModeComposerTopBar({
     return (
       <div className="om-sa-composer-top-bar" role="group" aria-label={t('Game studio options')}>
         {canChoosePlayableAd(options) && (
-          <label
-            className="om-sa-composer-top-pill cursor-pointer"
-            data-active={playableAd || undefined}
-          >
-            <span>{t('Playable ad')}</span>
-            <Toggle
-              label={t('Playable ad')}
-              checked={playableAd}
-              disabled={disabled}
-              onCommit={enabled => onChange(enabled
-                ? { gameOrientation: 'portrait', gamePlayableAd: true }
-                : { gamePlayableAd: false })}
-            />
-          </label>
+          <Tooltip label={t('Create a portrait game that players can try immediately, with replay and app store buttons at the end.')} wrap>
+            <label
+              className="om-sa-composer-top-pill cursor-pointer"
+              data-active={playableAd || undefined}
+            >
+              <span>{t('Playable ad')}</span>
+              <Toggle
+                label={t('Playable ad')}
+                checked={playableAd}
+                disabled={disabled}
+                onCommit={enabled => onChange(enabled
+                  ? { gameOrientation: 'portrait', gamePlayableAd: true }
+                  : { gamePlayableAd: false })}
+              />
+            </label>
+          </Tooltip>
         )}
         {renderGameArtPicker({
           menuKey: 'game-genre',
@@ -3510,7 +3513,7 @@ export function ModeComposerTopBar({
               variant="plain"
               type="button"
               className="om-sa-composer-top-pill"
-              data-active={options.gameOrientation === 'portrait' || openMenu === 'game-orientation' || undefined}
+              data-active={openMenu === 'game-orientation' || undefined}
               data-open={openMenu === 'game-orientation' || undefined}
               aria-haspopup="listbox"
               aria-expanded={openMenu === 'game-orientation'}
