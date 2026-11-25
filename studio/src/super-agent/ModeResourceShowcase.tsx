@@ -35,8 +35,6 @@ import lunarRef from '../motion/scene-art/apollo-11.jpg';
 import speakerRoomRef from '../motion/scene-art/speaker-room.webp';
 import speakerStudioRef from '../motion/scene-art/speaker-studio.webp';
 import { sceneExamples } from '../motion/sceneShowcase';
-import { ShowcaseCarousel } from './ShowcaseCarousel';
-import { SkillMedia } from '../motion/SkillMedia';
 import { motionSkills, skillCategories, type MotionSkill, type SkillCategory } from '../motion/skillCatalog';
 import { templateCollectionFacets, templatesInCollection, type TemplateCollection } from '../motion/templateCollections';
 import { aiTechnologyIndustry, purposeOrder } from '../motion/templateDiscoveryTaxonomy';
@@ -680,15 +678,6 @@ function buildCinemaCardsByCategory(
 }
 
 type ShowcaseResource = SuperAgentResourceAttachment & { prompt?: string };
-
-const motionBannerExamples = [
-  'openmotion-splash-float-product', 'openmotion-paper-collage-explainer', 'babylon-js',
-  'openmotion-whiteboard-doodle', 'openmotion-light-shadow-product',
-].flatMap(id => {
-  const skill = motionSkills.find(item => item.id === id);
-  const poster = skill?.cover?.poster;
-  return skill && poster ? [{ id, title: skill.title, prompt: skill.example, poster, subtitle: [], skill }] : [];
-});
 
 function motionTemplatePromptCard(tpl: GalleryTemplate): ShowcaseResource {
   return {
@@ -1468,12 +1457,6 @@ export function ModeResourceShowcase({
   };
   const isImageMode = mode.id === 'image' || (mode.id === 'design' && modeOptions?.designFormat === 'image');
   const showPromptCue = isImageMode || isVideoMode;
-  const bannerExamples = useMemo<(CuratedShowcaseCard & { skill?: MotionSkill })[]>(() => {
-    if (isImageMode) return buildImageCardsByCategory('all-image', isZh).slice(0, 5);
-    if (isPureVideoView) return buildCinemaCardsByCategory('all', isZh, mode.id).slice(0, 5);
-    if (isMotionGraphicsView) return motionBannerExamples;
-    return [];
-  }, [isImageMode, isPureVideoView, isMotionGraphicsView, isZh, mode.id]);
   function applyCardPrompt(card: CuratedShowcaseCard) {
     onPickPrompt(t(card.prompt), { optionsPatch: card.optionsPatch, referenceImage: card.referenceImage ?? null });
     onApplyTemplate();
@@ -1620,20 +1603,6 @@ export function ModeResourceShowcase({
               />
             )}
           </div>
-        ) : bannerExamples.length > 0 ? (
-          <ShowcaseCarousel key={effectiveHeroMode.id} items={bannerExamples} label={t(effectiveHeroMode.label)} active={active}>
-            {(card, { centered, playing, bringToFront }) => (
-              <Button variant="plain" type="button" className="om-sa-game-fan-card" data-composer-source
-                aria-label={centered ? `${t('Use this prompt')}: ${t(card.title)}` : t(card.title)}
-                onClick={centered ? () => applyCardPrompt(card) : bringToFront}>
-                {card.skill
-                  ? <SkillMedia skill={card.skill} playing={playing} />
-                  : <img src={card.poster} alt="" style={{ objectPosition: card.posterPosition }} />}
-                {centered && <ShowcaseActionCue label={t('Use this prompt')} />}
-                <span className="om-sa-game-fan-label">{t(card.title)}</span>
-              </Button>
-            )}
-          </ShowcaseCarousel>
         ) : (
           <span className="om-creation-icon om-sa-mode-hero-icon" data-tone={effectiveHeroMode.tone} aria-hidden="true">
             <RemixIcon name={effectiveHeroMode.icon} size={22} />
