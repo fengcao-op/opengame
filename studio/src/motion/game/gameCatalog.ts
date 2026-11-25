@@ -98,6 +98,7 @@ export const isLocalOnly = (url: string) => url.startsWith('blob:') || /^https?:
 const optionArt = import.meta.glob('./art/*.webp', { eager: true, query: '?url', import: 'default' }) as Record<string, string>;
 const art = (name: string) => optionArt[`./art/${name}.webp`] ?? null;
 export const genreCovers = Object.fromEntries(gameGenres.map(genre => [genre, art('genre-' + genre)])) as Record<GameGenre, string | null>;
+export const genreHomeCovers = Object.fromEntries(gameGenres.map(genre => [genre, art('genre-home-' + genre) ?? genreCovers[genre]])) as Record<GameGenre, string | null>;
 export const styleCovers = Object.fromEntries(gameStyles.map(style => [style, art('style-' + style)])) as Record<GameStyle, string | null>;
 export const settingCovers = Object.fromEntries(gameSettings.map(setting => [setting, art('setting-' + setting)])) as Record<GameSetting, string | null>;
 

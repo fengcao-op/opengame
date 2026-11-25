@@ -26,6 +26,7 @@ import {
   formatPlays,
   gameApi,
   genreCovers,
+  genreHomeCovers,
   genreLabels,
 } from '../motion/game/gameCatalog';
 import {
@@ -1734,7 +1735,7 @@ export function ModeResourceShowcase({
           <div className="om-sa-game-genre-strip" role="group" aria-label={t('Genre')}>
             {gameGenres.map(id => {
               const selected = modeOptions?.gameGenre === id;
-              const cover = genreCovers[id];
+              const cover = genreHomeCovers[id];
               const filter = `genre:${id}`;
               return (
                 <Button
