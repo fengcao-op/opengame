@@ -175,7 +175,7 @@ export function GameMasonry({
             return render(game, getCoverAspectRatio(game), src && (
               <AssetHoverVideo
                 src={src}
-                className="om-game-hover-preview pointer-events-none absolute inset-0 block h-full w-full object-cover"
+                className="pointer-events-none absolute inset-0 block h-full w-full object-cover"
               />
             ));
           })}
