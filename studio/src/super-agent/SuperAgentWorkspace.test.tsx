@@ -3572,7 +3572,8 @@ it('auto-enters Game mode when opened from Game Studio, plays games in Artifact 
 
   const search = container.querySelector<HTMLInputElement>('.om-sa-game-search input')!;
   await act(async () => {
-    search.value = 'Gate Legion';
+    const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!;
+    setter.call(search, 'Gate Legion');
     search.dispatchEvent(new Event('input', { bubbles: true }));
   });
   const bundledCover = container.querySelector<HTMLButtonElement>('.om-sa-game-tile-cover[aria-label="Try game: Gate Legion"]')!;
