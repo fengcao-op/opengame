@@ -937,28 +937,43 @@ export function ModeResourceShowcase({
   const [fanIndex, setFanIndex] = useState(() => (communityGames.length + bundledGames.length > 3 ? 3 : 0));
   const [fanPaused, setFanPaused] = useState(false);
   const [tabsOverflow, setTabsOverflow] = useState<{ start: boolean; end: boolean }>({ start: false, end: false });
+  const gameTitleRef = useRef<HTMLDivElement>(null);
   const showcaseSectionRef = useRef<HTMLElement | null>(null);
   const tabsRef = useRef<HTMLDivElement | null>(null);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 
-  const scrollToShowcase = (onlyWhenBelowTop = false) => {
-    const section = showcaseSectionRef.current;
-    if (!section) return;
+  const scrollToShowcase = (destination: 'templates' | 'game-title') => {
+    const target = destination === 'templates' ? showcaseSectionRef.current : gameTitleRef.current;
+    if (!target) return;
     const reducedMotion = typeof window !== 'undefined'
       && typeof window.matchMedia === 'function'
       && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const behavior: ScrollBehavior = reducedMotion ? 'auto' : 'smooth';
-    const scroller = section.closest<HTMLElement>('.om-sa-messages');
+    const scroller = target.closest<HTMLElement>('.om-sa-messages');
     if (scroller && typeof scroller.scrollTo === 'function') {
-      const scrollerRect = scroller.getBoundingClientRect();
-      const sectionRect = section.getBoundingClientRect();
-      const offsetTop = sectionRect.top - scrollerRect.top;
-      if (onlyWhenBelowTop && offsetTop <= 48) return;
-      const targetTop = Math.max(0, scroller.scrollTop + offsetTop - 16);
-      scroller.scrollTo({ top: targetTop, behavior });
+      const offset = target.getBoundingClientRect().top - scroller.getBoundingClientRect().top - 16;
+      if (destination === 'templates' && offset <= 32) return;
+      if (Math.abs(offset) > 1) {
+        scroller.scrollTo({ top: Math.max(0, scroller.scrollTop + offset), behavior });
+      }
       return;
     }
-    section.scrollIntoView?.({ behavior, block: 'start' });
+    target.scrollIntoView?.({ behavior, block: 'start' });
+  };
+
+  const selectGameShortcut = (filter: string) => {
+    setActiveFilter(filter);
+    requestAnimationFrame(() => {
+      const tabs = tabsRef.current;
+      const selected = tabs?.querySelector('[aria-selected="true"]');
+      if (tabs && selected && tabs.scrollWidth > tabs.clientWidth) {
+        const strip = tabs.getBoundingClientRect();
+        const tab = selected.getBoundingClientRect();
+        const left = Math.min(0, tab.left - strip.left - 28) + Math.max(0, tab.right - strip.right + 28);
+        if (left !== 0) tabs.scrollBy?.({ left });
+      }
+      scrollToShowcase('game-title');
+    });
   };
 
   const publishedGameTemplates = useMemo(
@@ -1138,14 +1153,12 @@ export function ModeResourceShowcase({
         return [
           { id: 'all', label: 'All games', count: publishedGameTemplates.length },
           ...(myGames.length > 0 ? [{ id: 'mine', label: 'My games', count: myGames.length }] : []),
-          ...gameGenres
-            .map(g => ({
-              id: `genre:${g}`,
-              label: genreLabels[g],
-              count: publishedGameTemplates.filter(item => item.genre === g).length,
-            }))
-            .filter(item => item.count > 0),
-          ...(portraitCount > 0 ? [{ id: 'portrait', label: 'Portrait games', count: portraitCount }] : []),
+          ...gameGenres.map(g => ({
+            id: `genre:${g}`,
+            label: genreLabels[g],
+            count: publishedGameTemplates.filter(item => item.genre === g).length,
+          })),
+          { id: 'portrait', label: 'Playable ads', count: portraitCount },
         ];
       }
       case 'motion':
@@ -1546,6 +1559,10 @@ export function ModeResourceShowcase({
       onFocusComposer?.();
     }
   };
+  const playShowcaseGame = (game: GameCard) => {
+    if (onPlayGame) onPlayGame(game);
+    else selectGameForAgent(game);
+  };
   const isImageMode = mode.id === 'image' || (mode.id === 'design' && modeOptions?.designFormat === 'image');
   const showPromptCue = isImageMode || isVideoMode;
   function applyCardPrompt(card: CuratedShowcaseCard) {
@@ -1637,15 +1654,8 @@ export function ModeResourceShowcase({
                     onPointerEnter={() => { if (isCenter) preconnectGame(game); }}
                     onFocus={() => { if (isCenter) preconnectGame(game); }}
                     onClick={() => {
-                      if (!isCenter) {
-                        setFanIndex(index);
-                        return;
-                      }
-                      if (onPlayGame) {
-                        onPlayGame(game);
-                        return;
-                      }
-                      selectGameForAgent(game);
+                      if (isCenter) playShowcaseGame(game);
+                      else setFanIndex(index);
                     }}
                   >
                     {cover && <img src={cover} alt="" />}
@@ -1715,7 +1725,7 @@ export function ModeResourceShowcase({
             <RemixIcon name={effectiveHeroMode.icon} size={22} />
           </span>
         )}
-        <div className="om-sa-mode-hero-copy">
+        <div className="om-sa-mode-hero-copy" ref={mode.id === 'game' ? gameTitleRef : undefined}>
           <h2>{t(effectiveHeroMode.title)}</h2>
           {effectiveHeroMode.subtitle && <p className="om-muted">{t(effectiveHeroMode.subtitle)}</p>}
         </div>
@@ -1725,6 +1735,7 @@ export function ModeResourceShowcase({
             {gameGenres.map(id => {
               const selected = modeOptions?.gameGenre === id;
               const cover = genreCovers[id];
+              const filter = `genre:${id}`;
               return (
                 <Button
                   key={id}
@@ -1734,12 +1745,9 @@ export function ModeResourceShowcase({
                   aria-pressed={selected}
                   data-active={selected || undefined}
                   onClick={() => {
-                    const nextGenre = selected ? null : id;
-                    onChangeModeOptions?.({ gameGenre: nextGenre });
-                    setActiveFilter(nextGenre ? `genre:${nextGenre}` : 'all');
-                    if (nextGenre) {
-                      requestAnimationFrame(() => scrollToShowcase(false));
-                    }
+                    const clear = selected && activeFilter === filter;
+                    onChangeModeOptions?.({ gameGenre: clear ? null : id });
+                    selectGameShortcut(clear ? 'all' : filter);
                   }}
                 >
                   <span className="om-sa-game-genre-art" aria-hidden="true">
@@ -1860,7 +1868,6 @@ export function ModeResourceShowcase({
         })()}
 
       </div>
-      {(composer || mode.id !== 'game') && (
       <div className="om-sa-mode-composer-group">
         {composer}
         {mode.id !== 'game' && (
@@ -1907,7 +1914,6 @@ export function ModeResourceShowcase({
         </div>
         )}
       </div>
-      )}
 
       {mode.id !== 'coding' && (
       <section ref={showcaseSectionRef} className="om-sa-showcase-panel" aria-labelledby={templateHeadingId}>
@@ -1933,7 +1939,7 @@ export function ModeResourceShowcase({
                 onClick={() => {
                   setActiveFilter(id);
                   if (mode.id === 'game' && id !== 'all') {
-                    requestAnimationFrame(() => scrollToShowcase(true));
+                    requestAnimationFrame(() => scrollToShowcase('templates'));
                   }
                   if (mode.id === 'design') {
                     if (modeOptions?.designFormat === 'image') {
@@ -2110,11 +2116,12 @@ export function ModeResourceShowcase({
           ) : (
             <GameMasonry
               games={visibleGames}
+              active={active}
               minColumn={248}
               gap={12}
               className="om-sa-game-masonry"
               columnClassName="om-sa-game-masonry-column"
-              render={game => {
+              render={(game, coverAspectRatio, preview) => {
                 const title = localizedGameTitle(game, locale);
                 const cover = coverUrl(game) ?? (game.source === 'mine' ? genreCovers[game.genre] : null);
                 const isMine = game.source === 'mine';
@@ -2129,7 +2136,8 @@ export function ModeResourceShowcase({
                   <article
                     key={game.id}
                     className="om-sa-game-tile om-sa-game-showcase-card"
-                    data-orientation={game.orientation === 'portrait' ? 'portrait' : undefined}
+                    data-orientation={game.orientation ?? 'landscape'}
+                    data-game-preview-id={game.source !== 'mine' ? game.id : undefined}
                     data-selected={isSelected || undefined}
                     data-playing={isPlaying || undefined}
                   >
@@ -2137,16 +2145,13 @@ export function ModeResourceShowcase({
                       variant="plain"
                       type="button"
                       className="om-sa-game-tile-cover"
+                      style={{ aspectRatio: coverAspectRatio }}
                       aria-label={onPlayGame ? t('Try game: {title}', { title }) : t('Play {title}', { title })}
                       disabled={game.multiplayer && !onPlayGame}
                       onPointerEnter={() => preconnectGame(game)}
                       onFocus={() => preconnectGame(game)}
-                      onClick={() => (onPlayGame ? onPlayGame(game) : selectGameForAgent(game))}
+                      onClick={() => playShowcaseGame(game)}
                     >
-                      {/* Portrait games share the 16:9 card: the cover sits whole in the middle over a blurred copy of itself. */}
-                      {cover && game.orientation === 'portrait' && (
-                        <img className="om-sa-game-tile-backdrop" src={cover} alt="" loading="lazy" decoding="async" />
-                      )}
                       {cover ? (
                         <img src={cover} alt="" loading="lazy" decoding="async" />
                       ) : (
@@ -2155,19 +2160,7 @@ export function ModeResourceShowcase({
                           <span>{title}</span>
                         </div>
                       )}
-                      <span
-                        className="om-sa-showcase-action-cue"
-                        data-playing={isPlaying || undefined}
-                        aria-hidden="true"
-                      >
-                        <RemixIcon name="play-fill" size={13} />
-                        <span>{isPlaying ? t('Playing') : t('Try game')}</span>
-                      </span>
-                      {!isPlaying && !isSelected && (
-                        <span className="om-sa-game-tile-play-badge" aria-hidden="true">
-                          <RemixIcon name="play-fill" size={11} />
-                        </span>
-                      )}
+                      {preview}
                       {status && (
                         <span className="om-sa-game-status" data-tone={game.status}>
                           {game.status === 'building' && <RemixIcon name="loader-4-line" size={12} />}
@@ -2227,21 +2220,22 @@ export function ModeResourceShowcase({
                         </span>
                       )}
                       <strong>{title}</strong>
-                      {game.external ? (
-                        <a
-                          className="om-sa-game-tile-author"
-                          href={game.external.postUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                      <div className="om-sa-game-tile-play-meta">
+                        {!game.external && game.plays > 0 && (
+                          <span className="om-sa-game-tile-plays">
+                            <RemixIcon name="play-circle-line" size={13} />
+                            {formatPlays(game.plays, locale)}
+                          </span>
+                        )}
+                        <span
+                          className="om-sa-showcase-action-cue"
+                          data-playing={isPlaying || undefined}
+                          aria-hidden="true"
                         >
-                          {game.external.author}
-                        </a>
-                      ) : game.plays > 0 ? (
-                        <span className="om-sa-game-tile-plays">
-                          <RemixIcon name="play-circle-line" size={13} />
-                          {formatPlays(game.plays, locale)}
+                          <RemixIcon name="play-fill" size={13} />
+                          <span>{isPlaying ? t('Playing') : t('Try game')}</span>
                         </span>
-                      ) : null}
+                      </div>
                     </div>
                   </article>
                 );

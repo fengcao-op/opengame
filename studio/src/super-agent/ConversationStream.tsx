@@ -55,6 +55,7 @@ import {
   coverUrl,
   gameApi,
   genreLabels,
+  genrePlaceholders,
   rememberInstruction,
   settingLabels,
   styleLabels,
@@ -473,8 +474,21 @@ export function ConversationStream({
   const headerIntentMeta = superAgentIntentMeta(headerPresentation.intent, headerPresentation);
   const modeOptionsRef = useRef<ModeComposerOptions>(modeOptions);
   modeOptionsRef.current = modeOptions;
+  const layoutBeforeAdRef = useRef<ModeComposerOptions['gameOrientation'] | undefined>(undefined);
+  const gameExampleDraftRef = useRef<string | null>(null);
   const [templateRevision, setTemplateRevision] = useState(0);
   const updateModeOptions = useCallback((patch: Partial<ModeComposerOptions>) => {
+    const current = modeOptionsRef.current;
+    if (patch.gamePlayableAd === true) {
+      if (!current.gamePlayableAd) layoutBeforeAdRef.current = current.gameOrientation;
+      patch = { ...patch, gameOrientation: 'portrait' };
+    } else if (patch.gamePlayableAd === false || patch.gameOrientation !== undefined) {
+      const previousLayout = layoutBeforeAdRef.current;
+      if (current.gamePlayableAd && patch.gameOrientation === undefined && previousLayout !== undefined) {
+        patch = { ...patch, gameOrientation: previousLayout };
+      }
+      layoutBeforeAdRef.current = undefined;
+    }
     setModeOptions(prev => {
       const next = { ...prev, ...patch };
       modeOptionsRef.current = next;
@@ -532,27 +546,6 @@ export function ConversationStream({
     requestAnimationFrame(() => composerRef.current?.focus());
   }, [draftSeed, chat?.messages.length, enterMode]);
 
-  const appliedGameTemplateSeedRef = useRef<number | null>(null);
-  useEffect(() => {
-    if (!gameTemplateSeed || appliedGameTemplateSeedRef.current === gameTemplateSeed.id) return;
-    appliedGameTemplateSeedRef.current = gameTemplateSeed.id;
-    const picked = gameTemplateSeed.game;
-    if (picked.multiplayer) return;
-    if (!chat?.messages.length) {
-      setActiveModeId('game');
-      updateModeOptions({
-        gameTemplate: picked,
-      });
-    } else {
-      if (!text.trim()) {
-        const remixPrompt = t('Remix · {title}', { title: localizedGameTitle(picked, locale) });
-        setText(remixPrompt);
-        composerRef.current?.setPlainText(remixPrompt);
-      }
-    }
-    requestAnimationFrame(() => composerRef.current?.focus());
-  }, [gameTemplateSeed, chat?.messages.length, locale, t, updateModeOptions]);
-
   useEffect(() => {
     if (!active) {
       setMentionMenuOpen(false);
@@ -590,6 +583,31 @@ export function ConversationStream({
     else focusEditor();
   }, [focusEditor]);
   const composerShellRef = useRef<HTMLDivElement>(null);
+  const getGameRemixPrompt = useCallback((game: GameCard) => (
+    t('Make a game based on {title}.', { title: localizedGameTitle(game, locale) })
+  ), [locale, t]);
+  const setGameExampleDraft = useCallback((next: string) => {
+    const draft = composerRef.current?.getSnapshot();
+    const current = draft?.text ?? text;
+    if (draft?.mentions.length || (current.trim() && current !== gameExampleDraftRef.current) || current === next) return;
+    gameExampleDraftRef.current = next || null;
+    setText(next);
+    composerRef.current?.setPlainText(next);
+  }, [text]);
+
+  const appliedGameTemplateSeedRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (!gameTemplateSeed || appliedGameTemplateSeedRef.current === gameTemplateSeed.id) return;
+    appliedGameTemplateSeedRef.current = gameTemplateSeed.id;
+    const picked = gameTemplateSeed.game;
+    if (picked.multiplayer) return;
+    if (!chat?.messages.length) {
+      setActiveModeId('game');
+      updateModeOptions({ gameTemplate: picked });
+    }
+    setGameExampleDraft(getGameRemixPrompt(picked));
+    requestAnimationFrame(focusModeComposer);
+  }, [gameTemplateSeed, chat?.messages.length, focusModeComposer, getGameRemixPrompt, setGameExampleDraft, updateModeOptions]);
 
   useEffect(() => {
     if (folderInputRef.current) {
@@ -771,6 +789,9 @@ export function ConversationStream({
 
   const handleComposerSnapshotChange = useCallback(
     (snap: ComposerSnapshot) => {
+      if (snap.text !== gameExampleDraftRef.current || snap.mentions.length > 0) {
+        gameExampleDraftRef.current = null;
+      }
       setText(snap.text);
       setSegments(snap.segments);
       setInlineMentions(snap.mentions);
@@ -1168,7 +1189,8 @@ export function ConversationStream({
           );
           const trimmedInput = snapText.trim();
           const hasCustomInputText = Boolean(trimmedInput)
-            && !(selectedTemplate && matchesDefaultGameDescription(selectedTemplate, trimmedInput));
+            && !(selectedTemplate && (trimmedInput === getGameRemixPrompt(selectedTemplate)
+              || matchesDefaultGameDescription(selectedTemplate, trimmedInput)));
           const remixUserNotes = [
             remixOverrideParts.length > 0 ? `Requested remix overrides: ${remixOverrideParts.join(', ')}.` : '',
             hasCustomInputText ? trimmedInput : '',
@@ -1486,7 +1508,17 @@ export function ConversationStream({
   };
 
   const hasModeLanding = Boolean(activeMode && !chat?.messages.length && !pendingSubmission && !loading && !loadFailed);
-  const hasInlineModeComposer = hasModeLanding && activeMode?.id !== 'game';
+  const hasGameLanding = activeMode?.id === 'game' && hasModeLanding && publishEntries.length === 0;
+  const changeLandingOptions = (patch: Partial<ModeComposerOptions>) => {
+    const hasRemix = Boolean(modeOptionsRef.current.gameTemplate);
+    updateModeOptions(patch);
+    if (!hasGameLanding) return;
+    if (patch.gameTemplate !== undefined) {
+      setGameExampleDraft(patch.gameTemplate ? getGameRemixPrompt(patch.gameTemplate) : '');
+    } else if (!hasRemix && patch.gameGenre !== undefined) {
+      setGameExampleDraft(patch.gameGenre ? t(genrePlaceholders[patch.gameGenre]) : '');
+    }
+  };
   const sendAction = (!busy || Boolean(editingQueuedId) || (isRunning && hasDraft)) && (
     <IconButton
       variant="plain"
@@ -1766,20 +1798,18 @@ export function ConversationStream({
               attachments={attachments}
               modeOptions={modeOptions}
               playingGameId={playingGameId}
-              onChangeModeOptions={updateModeOptions}
+              onChangeModeOptions={changeLandingOptions}
               onToggleAttachment={toggleResourceAttachment}
               onPlayGame={onPlayGame}
               onDeployGame={onDeployGame}
-              composer={activeMode.id === 'game'
-                ? null
-                : activeMode.id === 'coding'
-                  ? <div className="om-sa-composer-placement" ref={mountComposer} />
-                  : <DockableModeComposer ref={dockRef} scrollRef={listRef} mountEditor={mountComposer}
-                      focusEditor={focusEditor} templateRevision={templateRevision}
-                      preview={text.trim() || getModeComposerPlaceholder(activeMode, modeOptions, t)}
-                      action={sendAction} />}
+              composer={activeMode.id === 'coding'
+                ? <div className="om-sa-composer-placement" ref={mountComposer} />
+                : <DockableModeComposer ref={dockRef} scrollRef={listRef} mountEditor={mountComposer}
+                    focusEditor={focusEditor} templateRevision={templateRevision}
+                    preview={text.trim() || getModeComposerPlaceholder(activeMode, modeOptions, t)}
+                    action={sendAction} />}
               onApplyTemplate={() => setTemplateRevision(value => value + 1)}
-              onFocusComposer={activeMode.id === 'game' ? focusEditor : focusModeComposer}
+              onFocusComposer={focusModeComposer}
               onPickPrompt={(prompt, meta) => {
                 setText(prompt);
                 composerRef.current?.setPlainText(prompt);
@@ -1915,7 +1945,7 @@ export function ConversationStream({
         })()}
       </div>
 
-      {!hasInlineModeComposer && <div className="om-sa-composer-placement" ref={mountComposer} />}
+      {!hasModeLanding && <div className="om-sa-composer-placement" ref={mountComposer} />}
       {createPortal(<div className="om-sa-composer-wrap">
         {hasPendingApproval && (
           <div className="om-sa-approval-dock" role="region" aria-label={t('Approval needed')}>
@@ -2066,7 +2096,7 @@ export function ConversationStream({
             options={modeOptions}
             attachments={attachments}
             disabled={sending || hasPendingApproval}
-            onChange={updateModeOptions}
+            onChange={changeLandingOptions}
             onCatalogChange={handleCatalogChange}
             onOpenResourcePicker={category => {
               setMentionCategory(mapResourceTabToMentionCategory(category));
@@ -2140,7 +2170,7 @@ export function ConversationStream({
                         variant="plain"
                         className="om-sa-chip-remove"
                         aria-label={t('Remove {title}', { title: tplTitle })}
-                        onClick={() => updateModeOptions({ gameTemplate: null })}
+                        onClick={() => changeLandingOptions({ gameTemplate: null })}
                         icon={<RemixIcon name="close-line" size={12} />}
                       />
                     </span>
@@ -2356,9 +2386,6 @@ export function ConversationStream({
                 return followUpBehavior === 'queue'
                   ? t('Queue a follow-up message…')
                   : t('Send a follow-up to steer the current run…');
-              }
-              if (activeMode?.id === 'game' && modeOptions.gameTemplate) {
-                return t('Describe how to remix {title}, or send as is', { title: localizedGameTitle(modeOptions.gameTemplate, locale) });
               }
               if (!activeMode && chat && chat.messages.length > 0) {
                 const primaryDeliverable = [...chat.artifacts].reverse().find(a => a.kind !== 'workspace-file' && a.kind !== 'web');

@@ -24,7 +24,6 @@ import { RemixIcon } from '../icons/RemixIcons';
 import {
   genreCovers,
   genreLabels,
-  genrePlaceholders,
   settingCovers,
   settingLabels,
   styleCovers,
@@ -785,9 +784,6 @@ export function getModeComposerPlaceholder(
   if (mode.id === 'motion' && options.motionEngine === 'video-model') {
     return t('Describe the AI video shot you want to generate with Seedance or your video model…');
   }
-  if (mode.id === 'game') {
-    return t(genrePlaceholders[options.gameGenre ?? 'none']);
-  }
   return t(mode.placeholder);
 }
 
@@ -1232,7 +1228,6 @@ export function ModeComposerTopBar({
   onOpenModelSettings: () => void;
 }) {
   const { t } = useI18n();
-  const preAdOrientationRef = useRef<'landscape' | 'portrait' | null | undefined>(undefined);
   const needsMediaCatalog = active && (
     modeId === 'image'
     || modeId === 'media'
@@ -3484,37 +3479,6 @@ export function ModeComposerTopBar({
     const playableAd = isPlayableAd(options);
     return (
       <div className="om-sa-composer-top-bar" role="group" aria-label={t('Game studio options')}>
-        {/* The money-making mini game (playable ad) switch leads the game toolbar. */}
-        {canChoosePlayableAd(options) && (
-          <Tooltip
-            label={t('Create an instantly playable portrait game with “Play again” and “Go to store” buttons added automatically.')}
-            preview={<PlayableAdPreview />}
-          >
-            <label
-              className="om-sa-composer-top-pill cursor-pointer"
-              data-active={playableAd || undefined}
-            >
-              <span>{t('Ad-revenue game')}</span>
-              <Toggle
-                label={t('Ad-revenue game')}
-                checked={playableAd}
-                disabled={disabled}
-                onCommit={enabled => {
-                  if (enabled) {
-                    preAdOrientationRef.current = options.gameOrientation;
-                    onChange({ gameOrientation: 'portrait', gamePlayableAd: true });
-                  } else {
-                    const restore = preAdOrientationRef.current;
-                    preAdOrientationRef.current = undefined;
-                    onChange(restore !== undefined && restore !== 'portrait'
-                      ? { gameOrientation: restore, gamePlayableAd: false }
-                      : { gamePlayableAd: false });
-                  }
-                }}
-              />
-            </label>
-          </Tooltip>
-        )}
         {renderGameArtPicker({
           menuKey: 'game-genre',
           fallbackIcon: 'gamepad-line',
@@ -3598,7 +3562,6 @@ export function ModeComposerTopBar({
                   type="button"
                   className="om-sa-popover-pill"
                   onClick={() => {
-                    preAdOrientationRef.current = undefined;
                     onChange({ gameOrientation: null, gamePlayableAd: false });
                     setOpenMenu(null);
                   }}
@@ -3633,7 +3596,6 @@ export function ModeComposerTopBar({
                     data-active={selected || undefined}
                     className="om-sa-game-choice-row"
                     onClick={() => {
-                      preAdOrientationRef.current = undefined;
                       const nextOrientation = selected ? null : item.id;
                       onChange(nextOrientation === 'portrait'
                         ? { gameOrientation: 'portrait' }
@@ -3660,6 +3622,25 @@ export function ModeComposerTopBar({
             </div>
           </div>
         </Popover>
+        {canChoosePlayableAd(options) && (
+          <Tooltip
+            label={t('Create an instantly playable portrait game with “Play again” and “Go to store” buttons added automatically.')}
+            preview={<PlayableAdPreview />}
+          >
+            <label
+              className="om-sa-composer-top-pill cursor-pointer"
+              data-active={playableAd || undefined}
+            >
+              <span>{t('Ad-revenue game')}</span>
+              <Toggle
+                label={t('Ad-revenue game')}
+                checked={playableAd}
+                disabled={disabled}
+                onCommit={enabled => onChange({ gamePlayableAd: enabled })}
+              />
+            </label>
+          </Tooltip>
+        )}
       </div>
     );
   }

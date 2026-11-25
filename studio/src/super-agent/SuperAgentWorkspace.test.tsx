@@ -2556,6 +2556,7 @@ it('keeps multiplayer games playable in the catalog and only scaffolds single-pl
     expect(genreCards.length).toBe(6);
     expect(genreCards.map(card => card.textContent?.trim())).toContain('Visual novel');
     expect(genreCards.map(card => card.textContent?.trim())).not.toContain('Story');
+    expect(container.querySelector('.om-sa-game-genre-strip')?.textContent).not.toContain('Playable ad');
     expect(container.querySelectorAll('.om-sa-game-showcase-card').length).toBeGreaterThan(0);
 
     const filters = container.querySelector('.om-sa-showcase-tabs')!;
@@ -2575,13 +2576,21 @@ it('keeps multiplayer games playable in the catalog and only scaffolds single-pl
     expect(legacyCard).toBeTruthy();
     expect(legacyCard?.querySelector('.om-sa-game-tile-remix')).toBeNull();
     expect(container.querySelector('.om-sa-mode-ideas')).toBeNull();
-    // Game mode keeps the composer pinned at the bottom so templates remain visible above the fold.
-    expect(container.querySelector('.om-sa-mode-composer-group')).toBeNull();
-    expect(container.querySelector('.om-sa-stream > .om-sa-messages + .om-sa-composer-placement .om-sa-composer-editor')).toBeTruthy();
+    const composer = getComposerEditor(container);
+    const composerGroup = container.querySelector('.om-sa-mode-composer-group')!;
+    const composerSlot = composerGroup.querySelector<HTMLElement>('.om-sa-dock-slot')!;
+    expect(composerGroup.previousElementSibling?.classList.contains('om-sa-mode-hero')).toBe(true);
+    expect(composerGroup.nextElementSibling?.classList.contains('om-sa-showcase-panel')).toBe(true);
+    expect(composerSlot.dataset.position).toBe('inline');
+    expect(composerSlot.contains(composer)).toBe(true);
+    expect(container.querySelector('.om-sa-stream > .om-sa-composer-placement')).toBeNull();
 
-    // Clicking a Hero genre badge updates both composer options and the template filter tab, scrolls to templates, and toggles back cleanly.
+    const topBar = container.querySelector('.om-sa-composer-top-bar')!;
     const scroller = container.querySelector<HTMLElement>('.om-sa-messages')!;
-    const scrollToSpy = vi.fn();
+    const heroTitle = container.querySelector('.om-sa-mode-hero-copy')!;
+    vi.spyOn(scroller, 'getBoundingClientRect').mockReturnValue(new DOMRect(0, 100, 800, 600));
+    vi.spyOn(heroTitle, 'getBoundingClientRect').mockImplementation(() => new DOMRect(0, 280 - scroller.scrollTop, 800, 40));
+    const scrollToSpy = vi.fn(({ top }: ScrollToOptions) => { scroller.scrollTop = top ?? 0; });
     scroller.scrollTo = scrollToSpy;
     const shooterBadge = [...container.querySelectorAll<HTMLButtonElement>('.om-sa-game-genre-card')]
       .find(card => card.textContent?.includes('Shooter'))!;
@@ -2589,12 +2598,44 @@ it('keeps multiplayer games playable in the catalog and only scaffolds single-pl
       shooterBadge.click();
       await new Promise(resolve => requestAnimationFrame(() => resolve(undefined)));
     });
+    expect(shooterBadge.getAttribute('aria-pressed')).toBe('true');
     expect(filters.querySelector('[aria-selected="true"]')?.textContent).toContain('Shooter');
-    expect(scrollToSpy).toHaveBeenCalled();
-    await act(async () => shooterBadge.click());
-    expect(filters.querySelector('[aria-selected="true"]')?.textContent).toContain('All games');
+    expect(topBar.textContent).toContain('Shooter');
+    expect(scrollToSpy).toHaveBeenCalledWith({ top: 164, behavior: 'smooth' });
+    expect(composerSlot.dataset.position).toBe('inline');
+    expect(composer.textContent).toBe('A wave shooter where you defend a space station');
+    expect(composer.getAttribute('data-placeholder')).toBe('Describe the game you want to make');
 
-    const topBar = container.querySelector('.om-sa-composer-top-bar')!;
+    const adTab = [...filters.querySelectorAll<HTMLButtonElement>('button')]
+      .find(tab => tab.textContent?.startsWith('Playable ad'))!;
+    const selectedShortcuts = () => container.querySelectorAll('.om-sa-game-genre-card[aria-pressed="true"]');
+    const adSwitch = topBar.querySelector<HTMLElement>('[role="switch"][aria-label="Ad-revenue game"]')!;
+    const adSwitchLabel = adSwitch.closest('label')!;
+    expect(adSwitch.getAttribute('aria-checked')).toBe('true');
+    await act(async () => adTab.click());
+    expect([...selectedShortcuts()]).toEqual([shooterBadge]);
+    expect(filters.querySelector('[aria-selected="true"]')?.textContent).toContain('Playable ad');
+    expect(container.querySelectorAll('.om-sa-game-showcase-card[data-orientation="landscape"]')).toHaveLength(0);
+    expect(topBar.textContent).toContain('Screen layout');
+    expect(topBar.textContent).toContain('Shooter');
+    expect(adSwitch.getAttribute('aria-checked')).toBe('true');
+    expect(composer.textContent).toBe('A wave shooter where you defend a space station');
+    await act(async () => shooterBadge.click());
+    expect([...selectedShortcuts()]).toEqual([shooterBadge]);
+    expect(topBar.textContent).toContain('Screen layout');
+
+    const racingTab = [...filters.querySelectorAll<HTMLButtonElement>('button')]
+      .find(tab => tab.textContent?.includes('Racing'))!;
+    await act(async () => racingTab.click());
+    expect(racingTab.getAttribute('aria-selected')).toBe('true');
+    expect(topBar.textContent).toContain('Shooter');
+    await act(async () => shooterBadge.click());
+    expect(filters.querySelector('[aria-selected="true"]')?.textContent).toContain('Shooter');
+    await act(async () => shooterBadge.click());
+    expect(shooterBadge.getAttribute('aria-pressed')).toBe('false');
+    expect(gameTab.getAttribute('aria-selected')).toBe('true');
+    expect(composer.textContent).toBe('');
+
     expect(topBar).toBeTruthy();
     expect(topBar.textContent).toContain('Genre');
     expect(topBar.textContent).not.toContain('Shooter');
@@ -2602,10 +2643,6 @@ it('keeps multiplayer games playable in the catalog and only scaffolds single-pl
     expect(topBar.textContent).toContain('Setting');
     expect(topBar.textContent).toContain('Screen layout');
     expect(topBar.textContent).not.toContain('Landscape');
-    const adSwitch = topBar.querySelector<HTMLElement>('[role="switch"][aria-label="Ad-revenue game"]')!;
-    const adSwitchLabel = adSwitch.closest('label')!;
-    // New briefs start as a money-making mini game (playable ad) before any layout is picked.
-    expect(adSwitch.getAttribute('aria-checked')).toBe('true');
 
     // Open Art style popover and pick Pixel art
     const styleTrigger = [...topBar.querySelectorAll('button')].find(b => b.textContent?.includes('Art style')) as HTMLButtonElement;
@@ -2651,24 +2688,49 @@ it('keeps multiplayer games playable in the catalog and only scaffolds single-pl
     expect(topBar.textContent).toContain('Screen layout');
     expect(orientationTrigger.hasAttribute('data-active')).toBe(false);
 
-    // Toggle Playable ad on from unselected layout -> sets Portrait, toggling off restores unselected Screen layout.
+    // The composer toggle changes the creation layout independently of template filtering.
     await act(async () => adSwitchLabel.click());
     await flush();
     expect(topBar.textContent).toContain('Portrait');
     expect(orientationTrigger.hasAttribute('data-active')).toBe(true);
     expect(adSwitch.getAttribute('aria-checked')).toBe('true');
+    expect(gameTab.getAttribute('aria-selected')).toBe('true');
     await act(async () => adSwitchLabel.click());
     await flush();
     expect(topBar.textContent).toContain('Screen layout');
     expect(orientationTrigger.hasAttribute('data-active')).toBe(false);
     expect(adSwitch.getAttribute('aria-checked')).toBe('false');
-    await act(async () => adSwitchLabel.click());
-    await flush();
-    expect(topBar.textContent).toContain('Portrait');
-    expect(adSwitch.getAttribute('aria-checked')).toBe('true');
 
-    // Send brief -> creates Game Studio project and starts Super Agent game turn
-    await typeInComposer(getComposerEditor(container), 'Pixel shooter in space');
+    await typeInComposer(composer, 'Pixel shooter in space', { clear: true });
+    await act(async () => shooterBadge.click());
+    expect(composer.textContent).toBe('Pixel shooter in space');
+    await act(async () => adSwitchLabel.click());
+    await act(async () => adTab.click());
+    expect(adSwitch.getAttribute('aria-checked')).toBe('true');
+    expect(topBar.textContent).toContain('Portrait');
+    expect([...selectedShortcuts()]).toEqual([shooterBadge]);
+    expect(composer.textContent).toBe('Pixel shooter in space');
+
+    // Send the edited brief and start the Super Agent game turn.
+    Object.defineProperty(scroller, 'clientHeight', { value: 600 });
+    vi.spyOn(composerSlot, 'getBoundingClientRect').mockImplementation(() => new DOMRect(0, 100 - scroller.scrollTop, 700, 150));
+    await act(async () => {
+      scroller.scrollTop = 350;
+      scroller.dispatchEvent(new Event('scroll'));
+    });
+    expect(composerSlot.dataset.position).toBe('compact');
+    const summary = composerSlot.querySelector<HTMLButtonElement>('.om-sa-dock-summary')!;
+    expect(summary.textContent).toBe('Pixel shooter in space');
+    await act(async () => summary.click());
+    expect(composerSlot.dataset.position).toBe('expanded');
+    await act(async () => {
+      scroller.scrollTop = 0;
+      scroller.dispatchEvent(new Event('scroll'));
+    });
+    expect(composerSlot.dataset.position).toBe('inline');
+    expect(getComposerEditor(composerSlot)).toBe(composer);
+    expect(composer.textContent).toBe('Pixel shooter in space');
+
     const sendBtn = container.querySelector('.om-sa-send-btn') as HTMLButtonElement;
     expect(sendBtn.disabled).toBe(false);
     await act(async () => sendBtn.click());
@@ -2676,7 +2738,7 @@ it('keeps multiplayer games playable in the catalog and only scaffolds single-pl
 
     expect(createGameBody).toEqual({
       prompt: 'Pixel shooter in space',
-      genre: null,
+      genre: 'shooter',
       style: 'pixel',
       setting: null,
       multiplayer: false,
@@ -3374,7 +3436,12 @@ it('auto-enters Game mode when opened from Game Studio, plays games in Artifact 
   expect(container.querySelectorAll('.om-sa-game-fan-actions .om-sa-game-tile-remix').length).toBe(1);
   expect(container.querySelector('.om-sa-game-search input')).toBeTruthy();
   expect(container.querySelector('.om-sa-game-sort [role="combobox"]')).toBeTruthy();
-  expect(container.querySelectorAll('.om-sa-game-tile').length).toBeGreaterThan(0);
+  const landscapeCover = container.querySelector<HTMLElement>('.om-sa-game-tile[data-orientation="landscape"] .om-sa-game-tile-cover');
+  const portraitCover = container.querySelector<HTMLElement>('.om-sa-game-tile[data-orientation="portrait"] .om-sa-game-tile-cover');
+  expect(landscapeCover?.style.aspectRatio).toBe(`${16 / 9} / 1`);
+  expect(portraitCover?.style.aspectRatio).toBe(`${3 / 4} / 1`);
+  expect(container.querySelector('.om-sa-game-tile-play-badge')).toBeNull();
+  expect(container.querySelector('.om-sa-game-tile:not([data-playing]) .om-sa-game-tile-play-meta .om-sa-showcase-action-cue')?.textContent).toBe('Try game');
 
   // requestedGameId opens immediately in the right-hand Artifact Viewer without creating an empty chat
   const viewer = container.querySelector('.om-sa-viewer');
@@ -3384,7 +3451,7 @@ it('auto-enters Game mode when opened from Game Studio, plays games in Artifact 
   expect(viewer?.querySelector<HTMLInputElement>('input[aria-label="Artifact address bar"]')?.value).toBe('littleprince.dev');
   expect(chatCreateCalls).toBe(0);
 
-  // Clicking "Remix" inside the Artifact Viewer attaches a remix cartridge chip without auto-filling template copy or overwriting top-bar params
+  // Clicking "Remix" in the Artifact Viewer adds a template chip and editable prompt.
   const viewerUseBtn = viewer?.querySelector('.om-sa-game-use-btn') as HTMLButtonElement;
   expect(viewerUseBtn).toBeTruthy();
   expect(viewerUseBtn.textContent).toContain('Remix');
@@ -3397,8 +3464,7 @@ it('auto-enters Game mode when opened from Game Studio, plays games in Artifact 
   expect(container.querySelector('.om-sa-composer-chips .om-sa-chip-clear')).toBeNull();
 
   const gameInput = getComposerEditor(container);
-  expect(gameInput.textContent).toBe('');
-  expect(gameInput.getAttribute('data-placeholder')).toBe('Describe how to remix The Little Prince: Star Journey, or send as is');
+  expect(gameInput.textContent).toBe('Make a game based on The Little Prince: Star Journey.');
   expect((container.querySelector('.om-sa-send-btn') as HTMLButtonElement).disabled).toBe(false);
   const topBarAfterRemix = container.querySelector('.om-sa-composer-top-bar')!;
   expect(topBarAfterRemix.textContent).toContain('Genre');
@@ -3412,7 +3478,6 @@ it('auto-enters Game mode when opened from Game Studio, plays games in Artifact 
   await flush();
   expect(container.querySelector('.om-sa-composer-chips')).toBeNull();
   expect(gameInput.textContent).toBe('');
-  expect(gameInput.getAttribute('data-placeholder')).not.toContain('Describe how to remix');
 
   // Top fanned Hero carousel rotates smoothly via Next/Previous controls and side-card clicks
   const initialCenterLabel = container.querySelector('.om-sa-game-fan-item[data-slot="0"] .om-sa-game-fan-card')?.getAttribute('aria-label');
@@ -3433,16 +3498,16 @@ it('auto-enters Game mode when opened from Game Studio, plays games in Artifact 
   await flush();
   expect(container.querySelector('.om-sa-composer-chips')).toBeNull();
 
-  // Clicking a bottom masonry card's Remix button selects it without modifying composer text, preserving user edits across toggles
+  // Selecting a gallery template fills an editable draft and preserves user edits across toggles.
   const racingGame = communityGames.find(game => game.id === 'community-turbo-kart')!;
   const racingRemixBtn = container.querySelector<HTMLButtonElement>(`.om-sa-game-tile-remix[aria-label="Remix: ${racingGame.title}"]`)!;
   await act(async () => racingRemixBtn.click());
-  expect(gameInput.textContent).toBe('');
-  expect(gameInput.getAttribute('data-placeholder')).toBe(`Describe how to remix ${racingGame.title}, or send as is`);
+  expect(gameInput.textContent).toBe(`Make a game based on ${racingGame.title}.`);
   await act(async () => racingRemixBtn.click());
   expect(container.querySelector('.om-sa-composer-chips')).toBeNull();
+  expect(gameInput.textContent).toBe('');
   await act(async () => racingRemixBtn.click());
-  await typeInComposer(gameInput, 'Make the race three laps.');
+  await typeInComposer(gameInput, 'Make the race three laps.', { clear: true });
   await act(async () => racingRemixBtn.click());
   expect(gameInput.textContent).toBe('Make the race three laps.');
 
@@ -3453,6 +3518,7 @@ it('auto-enters Game mode when opened from Game Studio, plays games in Artifact 
   // Clicking a masonry card cover opens it directly in the viewer (with preconnect on focus)
   const evensong = communityGames.find(game => game.id === 'community-evensong')!;
   const evensongCover = container.querySelector<HTMLButtonElement>(`.om-sa-game-tile-cover[aria-label="Try game: ${evensong.title}"]`)!;
+  expect(evensongCover.closest('.om-sa-game-tile')?.querySelector(`a[href="${evensong.external!.postUrl}"]`)).toBeNull();
   const origin = new URL(evensong.external!.url).origin;
   await act(async () => evensongCover.focus());
   expect(document.head.querySelector(`link[rel="preconnect"][href="${origin}"]`)).toBeTruthy();
@@ -3461,6 +3527,20 @@ it('auto-enters Game mode when opened from Game Studio, plays games in Artifact 
   const gameFrame = () => container.querySelector<HTMLIFrameElement>(`iframe[title="${evensong.title}"]`);
   const originalFrame = gameFrame();
   expect(originalFrame?.getAttribute('src')).toBe(evensong.external!.url);
+  expect(evensongCover.closest('.om-sa-game-tile')?.querySelector('.om-sa-game-tile-play-meta [data-playing]')?.textContent).toBe('Playing');
+
+  const browserOptions = viewer!.querySelector<HTMLButtonElement>('button[aria-label="Browser options"]')!;
+  await act(async () => browserOptions.click());
+  await flush();
+  const menu = document.querySelector('.om-sa-browser-menu')!;
+  const openExternal = [...menu.querySelectorAll('[role="menuitem"]')]
+    .find(item => item.textContent === 'Open external')!;
+  const credit = openExternal.nextElementSibling;
+  expect(credit?.textContent).toBe(`Original author · ${evensong.external!.author}`);
+  expect(credit?.getAttribute('href')).toBe(evensong.external!.postUrl);
+  expect(credit?.getAttribute('target')).toBe('_blank');
+  await act(async () => browserOptions.click());
+  await flush();
 
   await act(async () => evensongCover.click());
   expect(gameFrame()).toBe(originalFrame);
@@ -3468,6 +3548,45 @@ it('auto-enters Game mode when opened from Game Studio, plays games in Artifact 
   const reload = container.querySelector<HTMLButtonElement>('.om-sa-viewer button[aria-label="Reload"]')!;
   await act(async () => reload.click());
   expect(gameFrame()).not.toBe(originalFrame);
+
+  const sideCards = [...container.querySelectorAll<HTMLButtonElement>(
+    '.om-sa-game-fan-item:is([data-slot="-1"], [data-slot="1"]) .om-sa-game-fan-card',
+  )];
+  const sideGame = communityGames.find(game =>
+    !container.querySelector(`iframe[title="${game.title}"]`) &&
+    sideCards.some(button => button.getAttribute('aria-label') === game.title),
+  )!;
+  const sideBanner = sideCards.find(button => button.getAttribute('aria-label') === sideGame.title)!;
+  const sideFrame = () => container.querySelector<HTMLIFrameElement>(`iframe[title="${sideGame.title}"]`);
+  expect(sideBanner.querySelector('.om-sa-showcase-action-cue')).toBeNull();
+  await act(async () => sideBanner.click());
+  expect(sideBanner.closest('.om-sa-game-fan-item')?.getAttribute('data-slot')).toBe('0');
+  expect(sideFrame()).toBeNull();
+  expect(sideBanner.querySelector('.om-sa-showcase-action-cue')?.textContent).toBe('Try game');
+  await act(async () => sideBanner.click());
+  const bannerFrame = sideFrame();
+  expect(bannerFrame?.getAttribute('src')).toBe(sideGame.external!.url);
+  const sideGrid = container.querySelector<HTMLButtonElement>(`.om-sa-game-tile-cover[aria-label="Try game: ${sideGame.title}"]`)!;
+  await act(async () => sideGrid.click());
+  expect(sideFrame()).toBe(bannerFrame);
+
+  const search = container.querySelector<HTMLInputElement>('.om-sa-game-search input')!;
+  await act(async () => {
+    search.value = 'Gate Legion';
+    search.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  const bundledCover = container.querySelector<HTMLButtonElement>('.om-sa-game-tile-cover[aria-label="Try game: Gate Legion"]')!;
+  expect(bundledCover).toBeTruthy();
+  await act(async () => bundledCover.click());
+  await flush();
+
+  const trialFrame = viewer?.querySelector<HTMLIFrameElement>('iframe[title="Gate Legion"]');
+  expect(trialFrame?.getAttribute('src')).toContain('/motion-api/games/gate-legion/play/index.html');
+  expect(trialFrame?.closest('.om-sa-iframe-stage')?.getAttribute('data-viewport')).toBe('desktop');
+  expect(viewer?.querySelector('.om-sa-game-use-btn')?.textContent).toContain('Remix');
+  expect(viewer?.querySelector('.om-sa-share-trigger')?.textContent).toContain('Share');
+  expect(viewer?.querySelector('.om-sa-view-mode-trigger, .om-sa-annotate-btn, .om-sa-publish-trigger')).toBeNull();
+  expect(viewer?.querySelector('button[aria-label="Viewport presets"]')).toBeNull();
 
   // Closing the last game preview tab collapses the split viewer back to the full homepage
   while (container.querySelector<HTMLButtonElement>('.om-sa-viewer-tab-close')) {
@@ -3625,7 +3744,7 @@ it('forwards explicit composer parameter overrides when remixing a local built-i
   await act(async () => portraitOption.click());
   await flush();
 
-  // Send with empty composer text -> uses "Remix · Lantern Hop" and forwards the explicit overrides to hiddenInstructions and contextTags
+  // Send the editable default prompt and forward explicit overrides in the hidden instructions and context tags.
   const sendBtn = container.querySelector<HTMLButtonElement>('.om-sa-send-btn')!;
   expect(sendBtn.disabled).toBe(false);
   await act(async () => sendBtn.click());
@@ -3633,7 +3752,7 @@ it('forwards explicit composer parameter overrides when remixing a local built-i
 
   expect(remixEndpointCalls).toBe(1);
   expect(remixRequestBody).toEqual({ style: 'pixel', orientation: 'portrait' });
-  expect(turnBody?.text).toBe('Remix · Lantern Hop');
+  expect(turnBody?.text).toBe('Make a game based on Lantern Hop.');
   expect(turnBody?.hiddenInstructions).toContain('Requested remix overrides: Style: Pixel art, Layout: Portrait (9:16).');
   expect(turnBody?.hiddenInstructions).toContain('style=pixel');
   expect(turnBody?.hiddenInstructions).toContain('orientation=portrait 9:16');
@@ -3773,7 +3892,7 @@ it('sends built-in template instant-delivery vs in-place-edit inference signals 
     await flush();
 
     expect(remixRequestBody).toEqual({});
-    expect(turnBody?.text).toBe('Remix · Sky Lantern Dash');
+    expect(turnBody?.text).toBe('Make a game based on Sky Lantern Dash.');
     expect(turnBody?.hiddenInstructions).toContain('No template parameters were overridden.');
     expect(turnBody?.hiddenInstructions).toContain('The user did not write custom modification text in this turn.');
     expect(turnBody?.hiddenInstructions).toContain('Controls: Tap or press Space to jump between lanterns.');

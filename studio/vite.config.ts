@@ -59,7 +59,13 @@ export default defineConfig({
     name: 'openmotion-design-system',
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
-        const file = resolveDesignSystemFile(new URL(req.url || '/', 'http://localhost').pathname);
+        const pathname = new URL(req.url || '/', 'http://localhost').pathname;
+        const preview = /^\/game-preview-drafts\/([a-z0-9-]+\.mp4)$/.exec(pathname);
+        if (preview) {
+          req.url = '/@fs' + local('../library/game-previews/' + preview[1]);
+          return next();
+        }
+        const file = resolveDesignSystemFile(pathname);
         if (!file) return next();
         try {
           const types: Record<string, string> = { '.css': 'text/css', '.js': 'text/javascript', '.html': 'text/html', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png', '.ttf': 'font/ttf', '.txt': 'text/plain' };

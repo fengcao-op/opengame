@@ -37,6 +37,16 @@ Each publication uses its exact sealed candidate bytes. Require both macOS and W
 
 Follow the [ODUI apply Skill](.agents/skills/odui-apply/SKILL.md) when applying or migrating an existing shared control in Studio.
 
+Keep the creation landing composer below the hero and above template discovery. Preserve the editor and draft when it docks after scrolling. See the [shared UI rules](AGENTS.md#ui-design-system-and-interaction-feedback).
+
+Keep card actions visible and operable over hover video. See the [UI craft checklist](docs/design-system.md#ui-craft-and-anti-patterns-checklist).
+
+Use neutral hover surfaces and text for game gallery card actions. See the [UI craft checklist](docs/design-system.md#ui-craft-and-anti-patterns-checklist).
+
+Use the existing card status label for active playback and reuse selection. Reserve focus outlines for keyboard navigation. See the [UI craft checklist](docs/design-system.md#ui-craft-and-anti-patterns-checklist).
+
+Use neutral selected surfaces, borders and text for adjacent game composer option pills. See the [UI craft checklist](docs/design-system.md#ui-craft-and-anti-patterns-checklist).
+
 Use opaque, solid theme surfaces for product UI, including menus, Popovers, tooltips, dialogs and floating controls. Do not introduce frosted glass, translucent content backgrounds or background blur (`backdrop-filter`). Maintain this treatment in the shared design system, not feature-local overrides. Modal scrims may use a uniform tint without blur; authored video and imported artwork remain independent. The authoritative rule is in [AGENTS.md](AGENTS.md#ui-design-system-and-interaction-feedback).
 
 Follow [the shared UI rules](AGENTS.md#ui-design-system-and-interaction-feedback), [the design-system interaction contract](docs/design-system.md#interaction-and-feedback-contract), and the [UI craft and anti-patterns checklist](docs/design-system.md#ui-craft-and-anti-patterns-checklist) **before** authoring or modifying any Studio UI or CSS:

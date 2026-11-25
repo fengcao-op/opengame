@@ -376,7 +376,11 @@
 }
 
 .om-sa-chat-status[data-state='running'] {
-  color: var(--motion-accent);
+  color: var(--motion-neutral-n0);
+}
+
+:where([data-motion-studio][data-theme='paper']) .om-sa-chat-status[data-state='running'] {
+  color: var(--motion-neutral-n11);
 }
 
 .om-sa-chat-row .om-badge.om-sa-chat-status-badge {
@@ -5417,19 +5421,6 @@
   padding-top: var(--motion-space-12);
 }
 
-.om-sa-stream[data-mode='game'] > .om-sa-composer-placement .om-sa-composer-wrap {
-  position: relative;
-  z-index: 4;
-  padding-top: var(--motion-space-8);
-  padding-bottom: var(--motion-space-12);
-  border-top: 1px solid color-mix(in srgb, var(--motion-border-subtle) 45%, transparent);
-  background: linear-gradient(
-    to top,
-    var(--motion-bg) 76%,
-    color-mix(in srgb, var(--motion-bg) 94%, transparent)
-  );
-}
-
 .om-sa-mode-hero {
   position: relative;
   display: flex;
@@ -6145,7 +6136,7 @@
   gap: var(--motion-space-8);
 }
 
-.om-sa-stream[data-mode='game'] .om-sa-composer-wrap .om-sa-composer-top-bar {
+.om-sa-stream[data-mode='game'] .om-sa-dock-slot[data-position='inline'] .om-sa-composer-top-bar {
   margin-block-end: var(--motion-space-4);
 }
 
@@ -6207,6 +6198,18 @@
   border-color: color-mix(in srgb, var(--motion-accent) 34%, transparent);
   color: var(--motion-accent);
   font-weight: var(--motion-weight-semibold);
+}
+
+.om-sa-stream[data-mode='game'] .om-sa-composer-top-pill[data-active] {
+  background: color-mix(in srgb, var(--motion-neutral-n0) 15%, transparent) padding-box;
+  border-color: color-mix(in srgb, var(--motion-neutral-n0) 32%, transparent);
+  color: var(--motion-neutral-n1);
+}
+
+:where([data-motion-studio][data-theme='paper']) .om-sa-stream[data-mode='game'] .om-sa-composer-top-pill[data-active] {
+  background: var(--motion-neutral-n3);
+  border-color: var(--motion-neutral-n4);
+  color: var(--motion-neutral-n11);
 }
 
 .om-sa-composer-top-pill > svg,
@@ -9482,11 +9485,17 @@
   overflow-x: clip;
 }
 
+.om-sa-stream-transition:has(.om-sa-game-fan) {
+  --om-sa-game-fan-height: 148px;
+  /* Keep the title reachable when a game filter leaves only a few results. */
+  min-height: calc(100% + var(--om-sa-game-fan-height) + var(--motion-space-40));
+}
+
 .om-sa-game-fan {
   position: relative;
   inset-block-start: 0;
   width: min(100%, 840px);
-  height: 148px;
+  height: var(--om-sa-game-fan-height);
   margin-block-end: var(--motion-space-4);
 }
 
@@ -9673,8 +9682,6 @@
 
 .om-sa-game-fan-item:hover .om-sa-showcase-action-cue,
 .om-sa-game-fan-card:focus-visible .om-sa-showcase-action-cue,
-.om-sa-game-tile:hover .om-sa-showcase-action-cue,
-.om-sa-game-tile-cover:focus-visible .om-sa-showcase-action-cue,
 .om-sa-showcase-card:is(:hover, :focus-visible) .om-sa-showcase-action-cue {
   opacity: 1;
   transform: translate(-50%, -50%) scale(1);
@@ -9812,65 +9819,19 @@
 
 .om-sa-game-tile:hover {
   transform: translateY(-2px);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--motion-accent) 44%, transparent), var(--motion-shadow-lg);
-}
-
-.om-sa-game-tile[data-playing],
-.om-sa-game-tile[data-selected] {
-  outline: 2px solid var(--motion-accent);
-  outline-offset: 2px;
-}
-
-.om-sa-game-tile-play-badge {
-  position: absolute;
-  top: var(--motion-space-8);
-  inset-inline-end: var(--motion-space-8);
-  z-index: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: var(--motion-radius-full);
-  background: color-mix(in srgb, var(--motion-neutral-n11) 78%, transparent);
-  color: var(--motion-overlay-ink);
-  pointer-events: none;
-  transition: opacity var(--motion-duration-fast) var(--motion-ease-out);
-}
-
-.om-sa-game-tile:hover .om-sa-game-tile-play-badge,
-.om-sa-game-tile:focus-within .om-sa-game-tile-play-badge {
-  opacity: 0;
+  box-shadow: var(--motion-shadow-lg);
 }
 
 .om-sa-game-tile-cover {
   position: relative;
   display: block;
   width: 100%;
-  aspect-ratio: 16 / 9;
   padding: 0;
   border: 0;
   border-radius: var(--motion-radius-lg);
   overflow: hidden;
   background: var(--motion-inset);
   cursor: pointer;
-}
-
-/* Portrait games keep the 16:9 card so both shapes line up in one grid; the 9:16 cover is shown whole over a blurred fill. */
-.om-sa-game-tile-cover .om-sa-game-tile-backdrop {
-  position: absolute;
-  inset: 0;
-  filter: blur(18px) brightness(0.55);
-  transform: scale(1.2);
-}
-
-.om-sa-game-tile:hover .om-sa-game-tile-cover .om-sa-game-tile-backdrop {
-  transform: scale(1.2);
-}
-
-.om-sa-game-tile[data-orientation="portrait"] .om-sa-game-tile-cover img:not(.om-sa-game-tile-backdrop) {
-  position: relative;
-  object-fit: contain;
 }
 
 .om-sa-game-tile-cover img {
@@ -9998,12 +9959,20 @@
   color: var(--motion-on-action);
 }
 
+:where(.om-sa-game-tile) :is(.om-sa-game-tile-deploy, .om-sa-game-tile-remix) {
+  background: color-mix(in srgb, var(--motion-neutral-n11) 75%, transparent);
+}
+
+:where(.om-sa-game-tile) :is(.om-sa-game-tile-deploy, .om-sa-game-tile-remix):is(:hover, :focus-visible) {
+  background: var(--motion-neutral-n9);
+  color: var(--motion-neutral-n0);
+}
+
 .om-sa-game-tile-meta {
   position: absolute;
   inset-inline: 0;
   bottom: 0;
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  display: flex;
   align-items: center;
   gap: var(--motion-space-8);
   padding: var(--motion-space-28) var(--motion-space-12) var(--motion-space-10);
@@ -10014,6 +9983,8 @@
 }
 
 .om-sa-game-tile-meta strong {
+  flex: 1 1 auto;
+  min-width: 0;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -10023,6 +9994,7 @@
 .om-sa-game-tile-icon {
   width: 20px;
   height: 20px;
+  flex-shrink: 0;
   overflow: hidden;
   border-radius: var(--motion-radius-sm);
   background: var(--motion-inset);
@@ -10035,7 +10007,32 @@
   display: block;
 }
 
-.om-sa-game-tile-author,
+.om-sa-game-tile-play-meta {
+  display: grid;
+  flex-shrink: 0;
+  align-items: center;
+  justify-items: end;
+}
+
+.om-sa-game-tile-play-meta > span {
+  grid-area: 1 / 1;
+}
+
+.om-sa-game-tile-play-meta .om-sa-showcase-action-cue {
+  position: static;
+  transform: none;
+  background: var(--motion-neutral-n0);
+  color: var(--motion-neutral-n11);
+}
+
+.om-sa-game-tile:is(:hover, [data-playing], :has(> .om-sa-game-tile-cover:focus-visible)) .om-sa-showcase-action-cue {
+  opacity: 1;
+}
+
+.om-sa-game-tile:is(:hover, [data-playing], :has(> .om-sa-game-tile-cover:focus-visible)) .om-sa-game-tile-plays {
+  visibility: hidden;
+}
+
 .om-sa-game-tile-plays {
   display: inline-flex;
   align-items: center;
@@ -10044,16 +10041,6 @@
   color: var(--motion-overlay-ink);
   opacity: 0.86;
   white-space: nowrap;
-}
-
-.om-sa-game-tile-author {
-  pointer-events: auto;
-  text-decoration: none;
-}
-
-.om-sa-game-tile-author:hover {
-  opacity: 1;
-  text-decoration: underline;
 }
 
 /* Artifact Viewer states for external non-embeddable and draft games */
@@ -10120,8 +10107,8 @@
 }
 
 @container sa-stream (max-width: 780px) {
-  .om-sa-game-fan {
-    height: 126px;
+  .om-sa-stream-transition:has(.om-sa-game-fan) {
+    --om-sa-game-fan-height: 126px;
   }
 
   .om-sa-game-fan-item {
@@ -10166,7 +10153,6 @@
   .om-sa-adv-summary,
   .om-sa-param-clear-btn,
   .om-sa-game-tile,
-  .om-sa-game-tile-play-badge,
   .om-sa-game-genre-card,
   .om-sa-game-genre-art,
   .om-sa-game-fan-item,

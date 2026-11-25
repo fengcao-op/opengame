@@ -1,6 +1,6 @@
 import { Button } from 'open-design-ui/button';
 import { IconButton } from 'open-design-ui/icon-button';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { gameGenres, gameSettings, gameStyles, isReadyBuiltInTemplate, type GameCard, type GameCreated, type GameGenre, type GameSetting, type GameStyle } from '../../../../shared/game-contract';
 import { rankSearchResults } from '../../../../shared/fuzzy-search';
@@ -352,7 +352,9 @@ export function GameStudio({
         {offline && <p className="om-muted om-game-note">{t('Showing the built-in games. Your games appear once the local game service is running.')}</p>}
         {rows.filter(row => row.games.length || row.id === 'all').map(row => <section key={row.id} className="om-game-row" aria-label={row.title}>
           {row.id !== 'featured' && <header><h2 className="om-subtitle"><RemixIcon name={row.icon} size={16} />{row.title}</h2></header>}
-          {row.games.length ? <GameMasonry games={row.games} minColumn={280} render={game => <GameTile key={game.id} game={game} locale={locale} onOpen={() => open(game)} />} />
+          {row.games.length ? <GameMasonry games={row.games} active={!opened} minColumn={280} render={(game, coverAspectRatio, preview) => (
+            <GameTile key={game.id} game={game} coverAspectRatio={coverAspectRatio} preview={preview} locale={locale} onOpen={() => open(game)} />
+          )} />
             : <div className="om-discovery-empty"><span>{t('No games match these filters.')}</span></div>}
         </section>)}
       </section>
@@ -396,18 +398,19 @@ const trailerSteps: Record<'recording' | 'composing' | 'rendering' | 'ready' | '
 // A draft waits for the user's Agent until the Agent itself sets building (openmotion_game_set_status).
 const statusLabels: Partial<Record<GameCard['status'], string>> = { draft: 'Waiting for your Agent', building: 'Agent is running', ready: 'Ready to publish', failed: 'Not finished' };
 
-function GameTile({ game, locale, onOpen }: { game: GameCard; locale: string; onOpen: () => void }) {
+function GameTile({ game, coverAspectRatio, preview, locale, onOpen }: {
+  game: GameCard; coverAspectRatio: number; preview: ReactNode; locale: string; onOpen: () => void;
+}) {
   const { t } = useI18n();
   const title = useGameTitle()(game);
   // A draft has no cover until the Agent makes one; the genre artwork stands in.
   const cover = coverUrl(game) ?? (game.source === 'mine' ? genreCovers[game.genre] : null);
   const status = game.source === 'mine' ? statusLabels[game.status] : undefined;
   const label = pending(game) || game.status === 'failed' ? t('Show the Agent instruction for {title}', { title }) : t('Play {title}', { title });
-  return <article className="om-game-tile" data-status={game.status} data-orientation={game.orientation === 'portrait' ? 'portrait' : undefined}>
-    <Button variant="plain" className="om-game-tile-cover" onClick={onOpen} aria-label={label}>
-      {/* Portrait games share the 16:9 card: the cover sits whole in the middle over a blurred copy of itself. */}
-      {cover && game.orientation === 'portrait' && <img className="om-game-tile-backdrop" src={cover} alt="" loading="lazy" decoding="async" />}
+  return <article className="om-game-tile" data-status={game.status} data-orientation={game.orientation ?? 'landscape'} data-game-preview-id={game.source !== 'mine' ? game.id : undefined}>
+    <Button variant="plain" className="om-game-tile-cover" style={{ aspectRatio: coverAspectRatio }} onClick={onOpen} aria-label={label}>
       {cover ? <img src={cover} alt="" loading="lazy" decoding="async" /> : <span className="om-game-tile-placeholder">{title}</span>}
+      {preview}
       {game.orientation === 'portrait' && !game.multiplayer && <span className="om-game-badge"><RemixIcon name="smartphone-line" size={13} />{t('Portrait')}</span>}
       {status && <span className="om-game-status" data-tone={game.status}>{game.status === 'building' && <RemixIcon name="loader-4-line" size={13} />}{t(status)}</span>}
       {game.external && !game.external.embeddable && <span className="om-game-status"><RemixIcon name="external-link-line" size={13} />{t('External link')}</span>}

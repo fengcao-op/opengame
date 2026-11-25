@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useSkillPreview } from './useSkillPreview';
 
 /** A temporary, silent player layered over the retained gallery poster. */
-export function AssetHoverVideo({ src }: { src: string }) {
+export function AssetHoverVideo({ src, className = 'om-asset-hover-video' }: { src: string; className?: string }) {
   const video = useRef<HTMLVideoElement>(null);
   const [playing, setPlaying] = useState(false), [failed, setFailed] = useState(false);
   const videoSource = useSkillPreview(src, !failed, setFailed);
@@ -26,7 +26,8 @@ export function AssetHoverVideo({ src }: { src: string }) {
       element.load();
     };
   }, [videoSource, failed]);
-  return <video ref={video} className="om-asset-hover-video" muted loop playsInline preload="none" aria-hidden="true"
+  return <video ref={video} className={className} muted loop playsInline preload="none" aria-hidden="true"
+    data-playing={playing && !failed || undefined}
     style={{ visibility: playing && !failed ? 'visible' : 'hidden' }}
     onPlaying={() => setPlaying(true)} onError={() => setFailed(true)} />;
 }
