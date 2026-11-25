@@ -18,6 +18,7 @@ import type { GatewayStatus, Modality, Model } from '../../../shared/gateway';
 import type { SuperAgentContextTag, SuperAgentResourceAttachment } from '../../../shared/super-agent';
 import { Popover } from '../components/ui/Popover';
 import { Tooltip } from '../components/ui/Tooltip';
+import { PlayableAdPreview } from './PlayableAdPreview';
 import { useI18n } from '../i18n/I18n';
 import { RemixIcon } from '../icons/RemixIcons';
 import {
@@ -3451,7 +3452,10 @@ export function ModeComposerTopBar({
     return (
       <div className="om-sa-composer-top-bar" role="group" aria-label={t('Game studio options')}>
         {canChoosePlayableAd(options) && (
-          <Tooltip label={t('Create a portrait game that players can try immediately, with replay and app store buttons at the end.')} wrap>
+          <Tooltip
+            label={t('Create an instantly playable portrait game with “Play again” and “Go to store” buttons added automatically.')}
+            preview={<PlayableAdPreview />}
+          >
             <label
               className="om-sa-composer-top-pill cursor-pointer"
               data-active={playableAd || undefined}

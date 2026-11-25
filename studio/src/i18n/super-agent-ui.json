@@ -1,5 +1,7 @@
 {
   "zh-CN": {
+    "Play again": "再玩一次",
+    "Go to store": "前往商店",
     "Chat · {model}": "对话 · {model}",
     "Image · {model}": "生图 · {model}",
     "Video · {model}": "视频 · {model}",
@@ -509,7 +511,7 @@
     "Running steps ({done}/{total})": "执行步骤中（{done}/{total}）",
     "{done}/{total} steps": "{done}/{total} 步",
     "{done}/{total} tasks": "{done}/{total} 项任务",
-    "Create a portrait game that players can try immediately, with replay and app store buttons at the end.": "生成打开就能玩的竖屏小游戏，结束时显示「再玩一次」和前往应用商店的按钮。",
+    "Create an instantly playable portrait game with “Play again” and “Go to store” buttons added automatically.": "生成打开就能玩的竖屏小游戏，自动配置「再玩一次」和「前往商店」的按钮",
     "Playable ad": "广告游戏",
     "Ad-ready: instant play, hand tutorial, short levels and a store button": "可直接投放：打开即玩、手指引导、短关卡和商店按钮",
     "Pull-the-pin playable ad": "拔针广告游戏",
@@ -969,6 +971,8 @@
     "Max": "最大"
   },
   "ja": {
+    "Play again": "もう一度遊ぶ",
+    "Go to store": "ストアへ",
     "Chat · {model}": "対話 · {model}",
     "Image · {model}": "画像 · {model}",
     "Video · {model}": "動画 · {model}",
@@ -1478,7 +1482,7 @@
     "Running steps ({done}/{total})": "ステップ実行中（{done}/{total}）",
     "{done}/{total} steps": "{done}/{total} ステップ",
     "{done}/{total} tasks": "{done}/{total} 件のタスク",
-    "Create a portrait game that players can try immediately, with replay and app store buttons at the end.": "すぐに遊べる縦画面のミニゲームを作成し、終了時にもう一度遊ぶボタンとアプリストアへのボタンを表示します。",
+    "Create an instantly playable portrait game with “Play again” and “Go to store” buttons added automatically.": "すぐに遊べる縦画面のミニゲームを作成し、「もう一度遊ぶ」と「ストアへ」のボタンを自動で追加します。",
     "Playable ad": "プレイアブル広告",
     "Ad-ready: instant play, hand tutorial, short levels and a store button": "広告向け：すぐ遊べて、指のチュートリアル、短いステージ、ストアボタン付き",
     "Pull-the-pin playable ad": "ピン抜きプレイアブル広告",
@@ -1938,6 +1942,8 @@
     "Max": "最大"
   },
   "ko": {
+    "Play again": "다시 플레이",
+    "Go to store": "스토어로 이동",
     "Chat · {model}": "대화 · {model}",
     "Image · {model}": "이미지 · {model}",
     "Video · {model}": "동영상 · {model}",
@@ -2447,7 +2453,7 @@
     "Running steps ({done}/{total})": "단계 실행 중 ({done}/{total})",
     "{done}/{total} steps": "{done}/{total}단계",
     "{done}/{total} tasks": "{done}/{total}개 작업",
-    "Create a portrait game that players can try immediately, with replay and app store buttons at the end.": "바로 플레이할 수 있는 세로형 미니게임을 만들고, 게임이 끝나면 다시 플레이하거나 앱 스토어로 이동하는 버튼을 표시합니다.",
+    "Create an instantly playable portrait game with “Play again” and “Go to store” buttons added automatically.": "바로 플레이할 수 있는 세로형 미니게임을 만들고 ‘다시 플레이’와 ‘스토어로 이동’ 버튼을 자동으로 추가합니다.",
     "Playable ad": "플레이어블 광고",
     "Ad-ready: instant play, hand tutorial, short levels and a store button": "광고용: 바로 플레이, 손가락 튜토리얼, 짧은 스테이지, 스토어 버튼",
     "Pull-the-pin playable ad": "핀 뽑기 플레이어블 광고",
@@ -2907,6 +2913,8 @@
     "Max": "최대"
   },
   "de": {
+    "Play again": "Erneut spielen",
+    "Go to store": "Zum Store",
     "Chat · {model}": "Chat · {model}",
     "Image · {model}": "Bild · {model}",
     "Video · {model}": "Video · {model}",
@@ -3416,7 +3424,7 @@
     "Running steps ({done}/{total})": "Running steps ({done}/{total})",
     "{done}/{total} steps": "{done}/{total} steps",
     "{done}/{total} tasks": "{done}/{total} tasks",
-    "Create a portrait game that players can try immediately, with replay and app store buttons at the end.": "Erstellt ein sofort spielbares Minispiel im Hochformat mit Schaltflächen zum erneuten Spielen und zum Öffnen des App-Stores am Ende.",
+    "Create an instantly playable portrait game with “Play again” and “Go to store” buttons added automatically.": "Erstellt ein sofort spielbares Minispiel im Hochformat und fügt automatisch die Schaltflächen „Erneut spielen“ und „Zum Store“ hinzu.",
     "Playable ad": "Playable Ad",
     "Ad-ready: instant play, hand tutorial, short levels and a store button": "Werbefertig: sofort spielbar, Hand-Tutorial, kurze Level und Store-Button",
     "Pull-the-pin playable ad": "Pull-the-Pin-Playable-Ad",
@@ -3879,6 +3887,8 @@
     "Max": "Maximal"
   },
   "fr": {
+    "Play again": "Rejouer",
+    "Go to store": "Voir la boutique",
     "Chat · {model}": "Chat · {model}",
     "Image · {model}": "Image · {model}",
     "Video · {model}": "Vidéo · {model}",
@@ -4388,7 +4398,7 @@
     "Running steps ({done}/{total})": "Running steps ({done}/{total})",
     "{done}/{total} steps": "{done}/{total} steps",
     "{done}/{total} tasks": "{done}/{total} tasks",
-    "Create a portrait game that players can try immediately, with replay and app store buttons at the end.": "Crée un mini-jeu en mode portrait jouable immédiatement, avec deux boutons à la fin pour rejouer ou accéder à la boutique d’applications.",
+    "Create an instantly playable portrait game with “Play again” and “Go to store” buttons added automatically.": "Crée un mini-jeu en mode portrait jouable immédiatement et ajoute automatiquement les boutons « Rejouer » et « Voir la boutique ».",
     "Playable ad": "Publicité jouable",
     "Ad-ready: instant play, hand tutorial, short levels and a store button": "Prête pour la pub : jouable tout de suite, tutoriel à la main, niveaux courts et bouton boutique",
     "Pull-the-pin playable ad": "Publicité jouable « tire la goupille »",
@@ -4851,6 +4861,8 @@
     "Max": "Max"
   },
   "ru": {
+    "Play again": "Сыграть ещё",
+    "Go to store": "В магазин",
     "Chat · {model}": "Чат · {model}",
     "Image · {model}": "Изображение · {model}",
     "Video · {model}": "Видео · {model}",
@@ -5360,7 +5372,7 @@
     "Running steps ({done}/{total})": "Running steps ({done}/{total})",
     "{done}/{total} steps": "{done}/{total} steps",
     "{done}/{total} tasks": "{done}/{total} tasks",
-    "Create a portrait game that players can try immediately, with replay and app store buttons at the end.": "Создаёт мини-игру в портретном режиме, в которую можно сразу сыграть, а в конце — начать заново или перейти в магазин приложений.",
+    "Create an instantly playable portrait game with “Play again” and “Go to store” buttons added automatically.": "Создаёт вертикальную мини-игру, в которую можно сразу сыграть, и автоматически добавляет кнопки «Сыграть ещё» и «В магазин».",
     "Playable ad": "Играбельная реклама",
     "Ad-ready: instant play, hand tutorial, short levels and a store button": "Для рекламы: игра сразу, подсказка пальцем, короткие уровни и кнопка магазина",
     "Pull-the-pin playable ad": "Реклама «вытащи штырь»",
@@ -5825,6 +5837,8 @@
     "Max": "Макс."
   },
   "es": {
+    "Play again": "Volver a jugar",
+    "Go to store": "Ir a la tienda",
     "Chat · {model}": "Chat · {model}",
     "Image · {model}": "Imagen · {model}",
     "Video · {model}": "Vídeo · {model}",
@@ -6334,7 +6348,7 @@
     "Running steps ({done}/{total})": "Running steps ({done}/{total})",
     "{done}/{total} steps": "{done}/{total} steps",
     "{done}/{total} tasks": "{done}/{total} tasks",
-    "Create a portrait game that players can try immediately, with replay and app store buttons at the end.": "Crea un minijuego vertical que se puede jugar de inmediato, con botones al final para volver a jugar o ir a la tienda de aplicaciones.",
+    "Create an instantly playable portrait game with “Play again” and “Go to store” buttons added automatically.": "Crea un minijuego vertical que se puede jugar de inmediato y añade automáticamente los botones «Volver a jugar» e «Ir a la tienda».",
     "Playable ad": "Anuncio jugable",
     "Ad-ready: instant play, hand tutorial, short levels and a store button": "Lista para anuncios: se juega al instante, tutorial con la mano, niveles cortos y botón de tienda",
     "Pull-the-pin playable ad": "Anuncio jugable de sacar el pasador",
@@ -6797,6 +6811,8 @@
     "Max": "Máximo"
   },
   "pt-BR": {
+    "Play again": "Jogar novamente",
+    "Go to store": "Ir à loja",
     "Chat · {model}": "Chat · {model}",
     "Image · {model}": "Imagem · {model}",
     "Video · {model}": "Vídeo · {model}",
@@ -7306,7 +7322,7 @@
     "Running steps ({done}/{total})": "Running steps ({done}/{total})",
     "{done}/{total} steps": "{done}/{total} steps",
     "{done}/{total} tasks": "{done}/{total} tasks",
-    "Create a portrait game that players can try immediately, with replay and app store buttons at the end.": "Cria um minijogo na vertical que pode ser jogado na hora, com botões no final para jogar de novo ou abrir a loja de aplicativos.",
+    "Create an instantly playable portrait game with “Play again” and “Go to store” buttons added automatically.": "Cria um minijogo vertical para jogar na hora e adiciona automaticamente os botões “Jogar novamente” e “Ir à loja”.",
     "Playable ad": "Anúncio jogável",
     "Ad-ready: instant play, hand tutorial, short levels and a store button": "Pronto para anúncio: joga na hora, tutorial com a mão, fases curtas e botão da loja",
     "Pull-the-pin playable ad": "Anúncio jogável de puxar o pino",
@@ -7769,6 +7785,8 @@
     "Max": "Máximo"
   },
   "it": {
+    "Play again": "Gioca ancora",
+    "Go to store": "Vai allo store",
     "Chat · {model}": "Chat · {model}",
     "Image · {model}": "Immagine · {model}",
     "Video · {model}": "Video · {model}",
@@ -8278,7 +8296,7 @@
     "Running steps ({done}/{total})": "Running steps ({done}/{total})",
     "{done}/{total} steps": "{done}/{total} steps",
     "{done}/{total} tasks": "{done}/{total} tasks",
-    "Create a portrait game that players can try immediately, with replay and app store buttons at the end.": "Crea un minigioco in verticale da giocare subito, con due pulsanti finali per rigiocare o aprire lo store delle app.",
+    "Create an instantly playable portrait game with “Play again” and “Go to store” buttons added automatically.": "Crea un minigioco in verticale subito giocabile e aggiunge automaticamente i pulsanti “Gioca ancora” e “Vai allo store”.",
     "Playable ad": "Annuncio giocabile",
     "Ad-ready: instant play, hand tutorial, short levels and a store button": "Pronto per la pubblicità: si gioca subito, tutorial con la mano, livelli brevi e pulsante dello store",
     "Pull-the-pin playable ad": "Annuncio giocabile «tira il perno»",
@@ -8741,6 +8759,8 @@
     "Max": "Massimo"
   },
   "tr": {
+    "Play again": "Tekrar oyna",
+    "Go to store": "Mağazaya git",
     "Chat · {model}": "Sohbet · {model}",
     "Image · {model}": "Görsel · {model}",
     "Video · {model}": "Video · {model}",
@@ -9250,7 +9270,7 @@
     "Running steps ({done}/{total})": "Running steps ({done}/{total})",
     "{done}/{total} steps": "{done}/{total} steps",
     "{done}/{total} tasks": "{done}/{total} tasks",
-    "Create a portrait game that players can try immediately, with replay and app store buttons at the end.": "Hemen oynanabilen, sonunda yeniden oynama ve uygulama mağazasına gitme düğmeleri bulunan dikey bir mini oyun oluşturur.",
+    "Create an instantly playable portrait game with “Play again” and “Go to store” buttons added automatically.": "Hemen oynanabilen dikey bir mini oyun oluşturur ve “Tekrar oyna” ile “Mağazaya git” düğmelerini otomatik olarak ekler.",
     "Playable ad": "Oynanabilir reklam",
     "Ad-ready: instant play, hand tutorial, short levels and a store button": "Reklama hazır: hemen oynanır, el ile eğitim, kısa bölümler ve mağaza düğmesi",
     "Pull-the-pin playable ad": "Pimi çek oynanabilir reklamı",

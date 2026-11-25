@@ -13,6 +13,7 @@ import {
   type ComponentProps,
   type CSSProperties,
   type ReactElement,
+  type ReactNode,
 } from "react";
 import { cn } from "./cn";
 import { floatingMotion, POPUP_LAYER } from "./floatingSurface";
@@ -21,6 +22,8 @@ interface TooltipProps {
   label?: string;
   /** Optional plain-language explanation below the feature name. */
   description?: string;
+  /** Decorative, non-interactive example. The label describes it for assistive technology. */
+  preview?: ReactNode;
   /** A single element, wrapped in a box-less span so a disabled one still gets hover. */
   children: ReactElement<{ "aria-describedby"?: string }>;
   /** Hover delay in ms. */
@@ -44,6 +47,7 @@ const VIEWPORT_MARGIN = 8;
 export function Tooltip({
   label,
   description,
+  preview,
   children,
   delay = 200,
   side,
@@ -88,9 +92,11 @@ export function Tooltip({
               "studio-tooltip pointer-events-none rounded-md border border-border-input bg-surface px-2 py-1 text-step-10 font-medium text-text-1 shadow-menu",
               lines || description || wrap ? "max-w-[min(300px,calc(100vw-16px))] whitespace-normal break-words" : "whitespace-nowrap",
               description && "px-3 py-2",
+              preview && "w-56 max-w-[calc(100vw-16px)] whitespace-normal p-2",
               floatingMotion("duration-tooltip"),
             )}
           >
+            {preview && <div aria-hidden="true" className="mb-2">{preview}</div>}
             {description ? (
               <>
                 <span className="block font-semibold">{label}</span>
