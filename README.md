@@ -31,12 +31,12 @@
 
 # Introducing OpenGame
 
-OpenGame is **the first Super Game Agent** — turning your local coding agent into an open-source AI Unreal Engine / Unity and full-stack game studio, taking you from a single prompt or viral game template all the way to automated QA, instant web sharing, and monetization-ready builds.
+OpenGame is **the first open-source Super Game Agent** — turning **DeepSeek (DSH)**, **Claude Code**, **Codex**, or any of your local coding agents into an AI Unreal Engine / Unity and full-stack game studio. Go from a single idea to **AAA-grade 3D worlds** or **monetization-ready viral mini-games** in one end-to-end pipeline.
 
-- 🎮 **One-Click Remix Any Game.** **25 built-in playable templates** (3D, voxel, anime, pixel & 9:16 mini-games / playable ads) with full editable source and design specs.
-- 🎨 **One-Click Re-style Any Game.** Keep a proven game loop while swapping characters, art style, and audio — affordable models like **DeepSeek** ship polished reskins fast, while **Claude Fable 5.2**, **Opus**, **Codex**, and **Gemini** build original 3D worlds from scratch.
-- 💰 **End-to-End Pipeline: Build → Verify → Publish & Monetize.** Automated validation, simulation, headless playtesting, cover capture, and trailers — ship a live web link, a 9:16 Playable Ad, or mini-game platform builds.
-- 🔓 **Full-Stack Open Source (BYOA + BYOK).** Code, art, video, music, voice, SFX, and Three.js 3D are all open source. Bring [your local agent](#agent-wall) and keys, or connect [OpenDesign Go](https://go.open-design.ai/?utm_source=github&utm_medium=referral&utm_campaign=opengame&utm_content=readme_en).
+- 🚀 **Build AAA-Grade 3D Games with Your Agent.** Drive full-stack 3D gameplay, art, music, and voice straight from **DeepSeek (DSH)**, **Claude**, **Codex**, or **Gemini** — from one prompt to playable 3D action, racing, and open-world games.
+- 🎮 **One-Click Remix & Re-style Any Game.** Start from **25 built-in playable templates** (3D, voxel, anime, pixel & 9:16 hits) with full editable source — keep proven mechanics while swapping characters, worlds, and art styles in minutes.
+- 💰 **Build Games That Earn: Create → Verify → Monetize.** Automated logic checks, balance simulation, headless playtesting, covers, and gameplay trailers — ship live web links, export single-file **9:16 Playable Ads**, and connect publishing paths for **WeChat Mini Games**, **TikTok**, and **Douyin**.
+- 🔓 **Full-Stack Open Source (BYOA + BYOK).** Code, art, video, music, voice, SFX, and Three.js 3D are all open source — plug in your favorite [local agent](#agent-wall) and own API keys, or connect [OpenDesign Go](https://go.open-design.ai/?utm_source=github&utm_medium=referral&utm_campaign=opengame&utm_content=readme_en) (Black Friday lowest-ever discount, with free access to **DeepSeek V4.1 Flash**, **Seedream**, and more).
 
 <a id="quick-start"></a> <a id="快速开始"></a>
 

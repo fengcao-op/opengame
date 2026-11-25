@@ -255,9 +255,12 @@ export async function capabilityDiscover(
   tracking?: OmTracking,
   channel: 'gui' | 'mcp' = 'mcp',
 ) {
+  const inspectModality = args.modality === 'image' || args.modality === 'video' || args.modality === 'audio'
+    ? args.modality
+    : undefined;
   if (args.action === 'providers') {
     if (args.provider) return mediaUse(store, { action: 'reference', provider: args.provider }, tracking);
-    return mediaUse(store, { action: 'inspect' }, tracking);
+    return mediaUse(store, { action: 'inspect', ...(inspectModality ? { modality: inspectModality } : {}) }, tracking);
   }
   if (args.action === 'models') {
     if (args.modality === '3d') return { providers: [], catalogs: [], setupRequired: true };
@@ -365,7 +368,11 @@ export async function capabilityDiscover(
     }).map(summarize);
     const offset = args.offset ?? 0;
     const sliced = args.limit === undefined ? entries.slice(offset) : entries.slice(offset, offset + args.limit);
-    const inspected = (await mediaUse(store, { action: 'inspect' }, tracking)) as {
+    const inspected = (await mediaUse(
+      store,
+      { action: 'inspect', ...(inspectModality ? { modality: inspectModality } : {}) },
+      tracking,
+    )) as {
       providers: unknown;
       defaults: unknown;
       settingsHandoff: unknown;

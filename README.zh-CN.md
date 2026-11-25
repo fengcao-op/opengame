@@ -31,12 +31,12 @@
 
 # 认识 OpenGame
 
-OpenGame 是**首个开源全栈 Super Game Agent**——把你本地的编程 Agent 变成一座开源 AI 版虚幻引擎 / Unity 与完整游戏工作室，从一句话创意或爆款游戏模板出发，走完**制作 → 自动化试玩验证 → 一键在线分享 → 上架变现**的端到端全链路。
+OpenGame 是**首个开源全栈 Super Game Agent**——把 **DeepSeek（DSH）**、**Claude Code**、**Codex** 或任意本地编程 Agent 变成一座开源 AI 版虚幻引擎 / Unity 与全栈游戏工作台，从一句话创意出发，既能打造 **3A 级 3D 大作**，也能跑通 **爆款小游戏上架变现** 全链路。
 
-- 🎮 **一键复刻任何游戏。** 内置 **25 款可玩游戏模板**（3D、体素、像素、动漫及 9:16 爆款小游戏 / 试玩广告），源码与设计文档全部可编辑。
-- 🎨 **一键风格化任何游戏。** 保留成熟玩法骨架，快速替换角色、画风与配乐——**DeepSeek** 可低成本稳定换皮，**Claude Fable 5.2 / Opus / Codex / Gemini** 可从零打造 3D 大作。
-- 💰 **全链路闭环：制作 → 验证 → 发布变现。** 自动完成逻辑校验、仿真试玩、封面截图与实机预告片，一键生成在线链接或 9:16 试玩广告，并衔接小游戏上架路径。
-- 🔓 **全栈开源（BYOA + BYOK）。** 代码、美术、视频、音乐、配音与 Three.js 3D 全部开源；自带 [本地 Agent](#agent-wall) 与 API Key，或接入 [OpenDesign Go](https://go.open-design.ai/?utm_source=github&utm_medium=referral&utm_campaign=opengame&utm_content=readme_zh)。
+- 🚀 **用你的 Agent 打造 3A 级大作。** 直接用 **DeepSeek（DSH）**、**Claude**、**Codex**、**Gemini** 驱动代码、3D 场景、美术、配乐与配音全栈生产——从一句话想法到可玩的 3D 动作、竞速与大世界体验。
+- 🎮 **一键复刻 & 风格化任何游戏。** 内置 **25 款可玩游戏模板**（3D、体素、像素、动漫及 9:16 爆款小游戏 / 试玩广告），源码与设计文档全开放；保留成熟核心玩法，几分钟完成换皮与画风重构。
+- 💰 **做能赚钱的游戏：制作 → 验证 → 上架变现。** 自动完成规则校验、仿真试玩、封面截图与实机预告片；一键生成在线试玩链接或单文件 **9:16 试玩广告**，并打通 **微信小游戏 / 抖音 / TikTok** 等平台上架变现路径。
+- 🔓 **全栈开源（BYOA + BYOK）。** 代码、美术、视频、音乐、配音与 Three.js 3D 全部开源，支持接入你常用的 [本地 Agent](#agent-wall) 与自有 API Key，也可一键连接 [OpenDesign Go](https://go.open-design.ai/?utm_source=github&utm_medium=referral&utm_campaign=opengame&utm_content=readme_zh)（黑五期间享最低折扣，**DeepSeek V4.1 Flash**、**Seedream** 等模型免费用）。
 
 <a id="quick-start"></a> <a id="快速开始"></a>
 

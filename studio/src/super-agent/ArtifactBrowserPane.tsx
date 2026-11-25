@@ -1054,7 +1054,7 @@ function GameProjectArtifactView({
       cancelled = true;
       if (revoked) URL.revokeObjectURL(revoked);
     };
-  }, [projectId, revisionKey, bundledMatch]);
+  }, [artifact.id, projectId, revisionKey, bundledMatch, communityMatch]);
 
   const isDraftOrFailed = Boolean(
     projectId
@@ -1852,10 +1852,13 @@ export function ArtifactBrowserPane({
 }) {
   const { t } = useI18n();
   const [viewMode, setViewMode] = useState<'preview' | 'code' | 'trailer'>('preview');
-  const [gameTrailerUrl, setGameTrailerUrl] = useState<string | null>(null);
-  const [gameSourceKind, setGameSourceKind] = useState<GameCard['source'] | null>(null);
+  const [gameMetaEntry, setGameMetaEntry] = useState<{
+    artifactId: string;
+    trailerUrl: string | null;
+    source: GameCard['source'] | null;
+    multiplayer: boolean;
+  } | null>(null);
   const [gameFrameBackgroundLoading, setGameFrameBackgroundLoading] = useState(false);
-  const [multiplayerArtifactId, setMultiplayerArtifactId] = useState<string | null>(null);
   const [viewport, setViewport] = useState<DesignViewportId>('desktop');
   const [reloadKey, setReloadKey] = useState(0);
   const [webStateEntry, setWebStateEntry] = useState<{ artifactId: string; state: WebPageState } | null>(null);
@@ -1901,7 +1904,10 @@ export function ArtifactBrowserPane({
     : openTabs.find(item => item.id === activeTabId) ?? openTabs.at(-1) ?? null;
   const activeGameProjectId = activeArtifact?.kind === 'game-project' ? activeArtifact.projectId : undefined;
   const bundledMatch = activeGameProjectId ? bundledGames.find(game => game.id === activeGameProjectId) : undefined;
-  const isGameTrial = activeArtifact?.kind === 'game-project' && (!activeGameProjectId || Boolean(bundledMatch));
+  const gameMeta = gameMetaEntry && gameMetaEntry.artifactId === activeArtifact?.id ? gameMetaEntry : null;
+  const isGameTrial = activeArtifact?.kind === 'game-project' && (
+    !activeGameProjectId || Boolean(bundledMatch) || gameMeta?.source === 'template' || gameMeta?.source === 'community'
+  );
   // Game publish wizard: only local workspace game projects can be packaged/published to platforms.
   const publishGameId = isGameTrial ? undefined : activeGameProjectId;
   const publishSession = useGamePublishSession(publishGameId ? activeArtifact?.id : null);
@@ -1945,8 +1951,6 @@ export function ArtifactBrowserPane({
       setBrowserMenuOpen(false);
       setConsoleEntries([]);
       setConsoleFilter('all');
-      setGameTrailerUrl(null);
-      setGameSourceKind(null);
       setGameFrameBackgroundLoading(false);
       setMotionSnapshot(null);
     }
@@ -2036,16 +2040,22 @@ export function ArtifactBrowserPane({
     void webRef.current?.command('set-touch', touch).catch(() => {});
   }, [activeArtifact?.kind, activeArtifact?.id, webDevicePreset]);
 
+  // A template has no code view; if its source resolves while Code is open, return to Preview.
+  useEffect(() => {
+    if (isGameTrial && viewMode !== 'preview') setViewMode('preview');
+  }, [isGameTrial, viewMode]);
   const supportsAnnotate = Boolean(
     activeArtifact && (
       activeArtifact.kind === 'web'
       || (activeArtifact.kind === 'design-project' && (viewMode === 'preview' || !activeArtifact.projectId))
-      || (activeArtifact.kind === 'game-project' && !isGameTrial && Boolean(activeGameProjectId) && viewMode === 'preview')
+      || (Boolean(activeGameProjectId) && !isGameTrial && viewMode === 'preview')
     ),
   );
+  // Templates keep the viewport presets so players can try phone and tablet sizes.
+  const showViewportMenu = supportsAnnotate || (isGameTrial && viewMode === 'preview');
   const canCaptureScreenshot = supportsAnnotate && Boolean(onAttachBrowserAnnotation);
   const isMultiplayerGame = Boolean(activeArtifact?.kind === 'game-project' && (
-    bundledMatch?.multiplayer || activeArtifact.id === multiplayerArtifactId || isMultiplayerGameArtifact(activeArtifact)
+    bundledMatch?.multiplayer || gameMeta?.multiplayer || isMultiplayerGameArtifact(activeArtifact)
   ));
   const toolbarGameAction = isGameTrial && !isMultiplayerGame ? onUseGameInAgent : undefined;
 
@@ -2614,7 +2624,7 @@ export function ArtifactBrowserPane({
             const viewModeOptions: Array<{ id: 'preview' | 'code' | 'trailer'; label: string; icon: string }> = [
               { id: 'preview', label: t('Preview'), icon: 'eye-line' },
               { id: 'code', label: t('Code'), icon: 'code-s-slash-line' },
-              ...(activeArtifact?.kind === 'game-project' && gameTrailerUrl
+              ...(activeArtifact?.kind === 'game-project' && gameMeta?.trailerUrl
                 ? [{ id: 'trailer' as const, label: t('Trailer'), icon: 'film-line' }]
                 : []),
             ];
@@ -2679,8 +2689,9 @@ export function ArtifactBrowserPane({
                   <span className="om-sa-toolbar-divider" aria-hidden="true" />
                 )}
 
-                {supportsAnnotate && (
+                {showViewportMenu && (
                   <div className="om-sa-tool-group">
+                    {supportsAnnotate && (
                     <Tooltip label={t('Annotate elements, regions, and drawings')}>
                       <IconButton
                         variant="ghost"
@@ -2698,6 +2709,7 @@ export function ArtifactBrowserPane({
                         icon={<RemixIcon name="focus-3-line" size={15} />}
                       />
                     </Tooltip>
+                    )}
 
                     <Popover
                       open={deviceMenuOpen}
@@ -2822,7 +2834,7 @@ export function ArtifactBrowserPane({
                       </Tooltip>
                     )}
 
-                    {(webErrorCount > 0 || consoleOpen) && (
+                    {supportsAnnotate && (webErrorCount > 0 || consoleOpen) && (
                       <Tooltip label={t('Console & errors')}>
                         <Button
                           variant="ghost"
@@ -2844,7 +2856,7 @@ export function ArtifactBrowserPane({
 
                 {toolbarGameAction && activeArtifact && (
                   <>
-                    {(hasModeSwitch || supportsAnnotate) && (
+                    {(hasModeSwitch || showViewportMenu) && (
                       <span className="om-sa-toolbar-divider" aria-hidden="true" />
                     )}
                     <Tooltip label={t('Remix')}>
@@ -2914,7 +2926,7 @@ export function ArtifactBrowserPane({
                   </div>
                 )}
 
-                {canCloudShare && (hasModeSwitch || supportsAnnotate || toolbarGameAction || (activeArtifact?.kind === 'motion-project' && Boolean(activeArtifact.projectId))) && (
+                {canCloudShare && (hasModeSwitch || showViewportMenu || toolbarGameAction || (activeArtifact?.kind === 'motion-project' && Boolean(activeArtifact.projectId))) && (
                   <span className="om-sa-toolbar-divider" aria-hidden="true" />
                 )}
 
@@ -3079,11 +3091,14 @@ export function ArtifactBrowserPane({
 
                 {activeArtifact.kind !== 'web' && (
                   <>
-                    {(supportsAnnotate || externalHref || sourceCredit || downloadHref) && (
+                    {(supportsAnnotate || externalHref || sourceCredit || downloadHref)
+                      // Games only have "Open in Game Studio" below; skip the separator when it is absent.
+                      && (activeArtifact.kind !== 'game-project' || Boolean(activeArtifact.projectId && onOpenInGameStudio)) && (
                       <div role="separator" />
                     )}
 
-                    {!toolbarGameAction && !isMultiplayerGame && ['design-project', 'motion-project', 'game-project', 'asset-image', 'asset-video', 'asset-audio', 'brand-kit'].includes(activeArtifact.kind) && (
+                    {/* Games: templates use the toolbar Remix button; the user's own games need no Attach entry. */}
+                    {['design-project', 'motion-project', 'asset-image', 'asset-video', 'asset-audio', 'brand-kit'].includes(activeArtifact.kind) && (
                       <Button
                         variant="plain"
                         type="button"
@@ -3091,15 +3106,11 @@ export function ArtifactBrowserPane({
                         className="om-sa-browser-menu-item"
                         onClick={() => {
                           setBrowserMenuOpen(false);
-                          if (activeArtifact.kind === 'game-project' && onUseGameInAgent) {
-                            onUseGameInAgent(activeArtifact);
-                          } else {
-                            onAttachArtifact(activeArtifact);
-                          }
+                          onAttachArtifact(activeArtifact);
                         }}
                       >
-                        <RemixIcon name={activeArtifact.kind === 'game-project' && gameSourceKind !== 'mine' ? 'sparkling-line' : 'add-line'} size={14} />
-                        <span>{activeArtifact.kind === 'game-project' && gameSourceKind !== 'mine' ? t('Remix') : t('Attach')}</span>
+                        <RemixIcon name="add-line" size={14} />
+                        <span>{t('Attach')}</span>
                       </Button>
                     )}
 
@@ -3564,7 +3575,7 @@ export function ArtifactBrowserPane({
             isTrial={isGameTrial}
             chatId={chatId}
             mode={isGameTrial ? 'preview' : viewMode}
-            viewport={isGameTrial ? 'desktop' : viewport}
+            viewport={viewport}
             reloadKey={reloadKey}
             requestedCodeFile={requestedCodeFile?.artifactId === activeArtifact.id ? requestedCodeFile : null}
             annotateActive={supportsAnnotate && annotateActive}
@@ -3575,11 +3586,7 @@ export function ArtifactBrowserPane({
             onSubmitAnnotation={handleSubmitBrowserAnnotation}
             onCloseAnnotate={() => setAnnotateActive(false)}
             onNotify={onNotify}
-            onGameMeta={meta => {
-              setGameTrailerUrl(meta.trailerUrl);
-              setGameSourceKind(meta.source);
-              setMultiplayerArtifactId(meta.multiplayer ? activeArtifact.id : null);
-            }}
+            onGameMeta={meta => setGameMetaEntry({ artifactId: activeArtifact.id, ...meta })}
             onBackgroundLoadingChange={setGameFrameBackgroundLoading}
           />
         ) : activeArtifact.kind === 'web' && activeArtifact.url && chatId ? (

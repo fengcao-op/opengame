@@ -55,9 +55,13 @@ describe('playable ads in Super Agent', () => {
     expect(adPrompt).toContain('format=playable ad');
     expect(adPrompt).not.toContain('one self-contained HTML');
     expect(adPrompt).toContain('openmotion_media_use');
+    expect(adPrompt).toContain('openmotion_open_preview');
+    expect(adPrompt).toContain('agent_media_signed_out');
+    expect(adPrompt).toContain('agent_media_upgrade_free');
     expect(adPrompt).toContain('spend-consent');
     expect(normalPrompt).not.toContain('playable ad');
     expect(normalPrompt).toContain('openmotion_media_use');
+    expect(normalPrompt).toContain('openmotion_open_preview');
     expect(toGameArtifact(game({ playableAd: true }), 'Coin Cascade').subtitle).toContain('Playable ad');
     expect(toGameArtifact(game({ playableAd: true }), 'Coin Cascade').playableAd).toBe(true);
     expect(isPlayableAdArtifact({ kind: 'game-project', subtitle: 'casual · Playable ad' })).toBe(true);

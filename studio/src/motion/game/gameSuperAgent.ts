@@ -170,7 +170,7 @@ export function buildGameHiddenInstructions(
   }
 
   const assetNote = instruction.includes('openmotion_media_use') ? '' : ` ${gameAssetInstructions}`;
-  const consentNote = ' (except a single batched spend-consent check when priced media generation is planned)';
+  const consentNote = ' (except a single sign-in/subscription setup handoff when planned multimodal providers are unavailable, or a single batched spend-consent check when priced media generation is planned)';
   return [
     instruction,
     extraNotes,

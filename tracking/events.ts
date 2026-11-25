@@ -80,6 +80,8 @@ export const entitlementHookIds = [
   'settings_subscription', 'studio_free_gate', 'model_picker_upgrade', 'studio_res_gate',
   'failure_card_topup', 'mcp_oauth',
   'model_hub_signin', 'model_hub_upgrade', 'game_publish_signin', 'cloud_share_signin',
+  'balance_gate_topup', 'concurrency_gate_upgrade',
+  'game_publish_panel_signin', 'game_publish_unlisted_upgrade',
 ] as const;
 export type EntitlementHookId = (typeof entitlementHookIds)[number];
 const campaign = { campaign_id: ['black_friday_2026'], entry_id: 'uuid', hook_id: entitlementHookIds } as const;
@@ -254,7 +256,8 @@ export const omEvents = {
       'open_in_codex', 'open_external', 'reload_game', 'fullscreen_game', 'game_tab', 'open_publish', 'toggle_link_access', 'publish_link', 'new_link', 'copy_publish_link',
       'create_trailer', 'regenerate_trailer', 'open_trailer_project', 'open_game_studio', 'view_all_games',
       'open_palette', 'select_result', 'scope_tab', 'popular_topic', 'ask_super_agent',
-      'open_skill_fallback', 'toggle_options', 'toggle_instruction', 'run_super_agent'],
+      'open_skill_fallback', 'toggle_options', 'toggle_instruction', 'run_super_agent',
+      'close_modal', 'check_balance'],
     // The chosen value of a control with a small fixed set of choices; never free text.
     option: ['on', 'off', 'light', 'dark', 'en', 'zh-CN', 'ja', 'ko', 'de', 'fr', 'ru', 'es', 'pt-BR', 'it', 'tr',
       'all', 'images', 'video', 'audio', 'fonts',

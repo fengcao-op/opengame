@@ -2332,7 +2332,9 @@ test('Codex and Claude Super Agent prompts share unified gameAssetInstructions w
     assert.doesNotMatch(prompt, /optionally generate visual/i);
     assert.doesNotMatch(prompt, /openmotion_generate_asset/);
     assert.doesNotMatch(prompt, /keep game assets inline in index\.html/i);
-    assert.match(prompt, /except when the Game Studio no-nag boundary applies/);
+    assert.doesNotMatch(prompt, /Game Studio no-nag boundary/);
+    assert.match(prompt, /including Game Studio multimodal-first builds[\s\S]*MUST call openmotion_open_preview/);
+    assert.match(prompt, /requires subscribing to OpenDesign Plus/);
     assert.match(prompt, /Built-in template remix fast path/);
     assert.match(prompt, /deliver immediately with zero rebuild/);
     assert.match(prompt, /never say you copied a template/i);

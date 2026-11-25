@@ -2135,7 +2135,8 @@ it('auto-sends queued game handoffs from Game Studio, renders gamepad-line icon,
   const previewMenu = document.querySelector('.om-sa-browser-menu');
   expect(previewMenu?.textContent).toContain('Console & errors');
   expect(previewMenu?.textContent).not.toContain('Capture screenshot to chat');
-  expect(previewMenu?.textContent).toContain('Attach');
+  // The user's own games no longer offer an Attach entry in the browser menu.
+  expect(previewMenu?.textContent).not.toContain('Attach');
   await act(async () => menuBtn.click());
   await flush();
 
@@ -3539,6 +3540,7 @@ it('auto-enters Game mode when opened from Game Studio, plays games in Artifact 
   expect(credit?.textContent).toBe(`Original author · ${evensong.external!.author}`);
   expect(credit?.getAttribute('href')).toBe(evensong.external!.postUrl);
   expect(credit?.getAttribute('target')).toBe('_blank');
+  expect(menu.lastElementChild).toBe(credit);
   await act(async () => browserOptions.click());
   await flush();
 
@@ -3587,7 +3589,13 @@ it('auto-enters Game mode when opened from Game Studio, plays games in Artifact 
   expect(viewer?.querySelector('.om-sa-game-use-btn')?.textContent).toContain('Remix');
   expect(viewer?.querySelector('.om-sa-share-trigger')?.textContent).toContain('Share');
   expect(viewer?.querySelector('.om-sa-view-mode-trigger, .om-sa-annotate-btn, .om-sa-publish-trigger')).toBeNull();
-  expect(viewer?.querySelector('button[aria-label="Viewport presets"]')).toBeNull();
+  const trialViewport = viewer!.querySelector<HTMLButtonElement>('button[aria-label="Viewport presets"]')!;
+  await act(async () => trialViewport.click());
+  const mobilePreset = [...document.querySelectorAll<HTMLButtonElement>('.om-sa-device-menu [role="menuitemradio"]')]
+    .find(button => button.textContent?.includes('Mobile'))!;
+  await act(async () => mobilePreset.click());
+  expect(trialFrame?.closest('.om-sa-iframe-stage')?.getAttribute('data-viewport')).toBe('mobile');
+  expect(viewer?.querySelector('iframe[title="Gate Legion"]')).toBe(trialFrame);
 
   // Closing the last game preview tab collapses the split viewer back to the full homepage
   while (container.querySelector<HTMLButtonElement>('.om-sa-viewer-tab-close')) {
